@@ -1,0 +1,14 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@/prisma/PrismaService';
+import { ${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}, Prisma } from '@prisma/client';
+
+@Injectable()
+export class ${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}Service {
+  public repo::ConstructorParameters<typeof ${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}Service>[0]['${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}']
+  constructor(
+    private prisma: PrismaService
+    ) {
+      this.repo=prisma.${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}//构造函数中的选项都会被依赖注入扫描
+    }
+  //Service层应该写一些事务代码或者业务代码，不要写样本代码，Service层不是Orm的简单套壳
+}

@@ -1,0 +1,65 @@
+import {
+    Controller,
+    Get,
+    Param,
+    Post,
+    Body,
+    Put,
+    Delete,
+    Query,
+} from '@nestjs/common';
+import { ${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}Service } from '@/${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}/${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}Service';
+import { ${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}} } from '@prisma/client';
+
+@Controller()
+export class ${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}Controller {
+    constructor(
+        private readonly ${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}Service: ${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}Service,
+    ) { }
+    @Get('/:id')
+    async get${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}ById(
+        @Param() id:number
+      ): Promise<${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}} | null> {
+        return this.${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}Service.repo.findUnique({
+          where:{
+            id
+          },
+        });
+      }
+
+    @Get('')
+    async get${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}s(
+        @Body() searchValue:${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}
+    ){
+        return this.${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}Service.repo.findMany({
+            where:searchValue
+        })
+    }
+    @Post('')
+    async create${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}(
+        @Body() ${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}: ${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}},
+    ): Promise<${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}> {
+        return this.${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}Service.repo.create({data:${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}});
+    }
+    @Put('')
+    async update${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}(
+        @Body() ${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}: ${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}},
+    ): Promise<${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}> {
+        return this.${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}Service.repo.update({
+            where:{
+                id:${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}.id
+            },
+            data:${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}
+        });
+    }
+    @Delete('')
+    async delete${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}(
+        @Param()id:number
+    ): Promise<${1:${TM_FILENAME/(.*)Controller\.ts/${1:/capitalize}/}}>{
+        return this.${2:${TM_FILENAME/(.*)Controller\.ts/${1:/downcase}/}}Service.repo.delete({
+            where:{
+                id
+            }
+        })
+    }
+}

@@ -1,0 +1,56 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@/prisma/PrismaService';
+import { ${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}, Prisma } from '@prisma/client';
+
+@Injectable()
+export class ${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}Service {
+  constructor(private prisma: PrismaService) {}
+
+  async findOne(
+    ${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}WhereUniqueInput: Prisma.${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}WhereUniqueInput,
+  ): Promise<${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}} | null> {
+    return this.prisma.${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}.findUnique({
+      where: ${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}WhereUniqueInput,
+    });
+  }
+
+  async findAll(params: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}WhereUniqueInput;
+    where?: Prisma.${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}WhereInput;
+    orderBy?: Prisma.${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}OrderByWithRelationInput;
+  }): Promise<${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}[]> {
+    const { skip, take, cursor, where, orderBy } = params;
+    return this.prisma.${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}.findMany({
+      skip,
+      take,
+      cursor,
+      where,
+      orderBy,
+    });
+  }
+
+  async create(data: Prisma.${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}CreateInput): Promise<${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}> {
+    return this.prisma.${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}.create({
+      data,
+    });
+  }
+
+  async update(params: {
+    where: Prisma.${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}WhereUniqueInput;
+    data: Prisma.${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}UpdateInput;
+  }): Promise<${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}> {
+    const { where, data } = params;
+    return this.prisma.${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}.update({
+      data,
+      where,
+    });
+  }
+
+  async del(where: Prisma.${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}WhereUniqueInput): Promise<${1:${TM_FILENAME/(.*)Service\.ts/${1:/capitalize}/}}> {
+    return this.prisma.${2:${TM_FILENAME/(.*)Service\.ts/${1:/downcase}/}}.delete({
+      where,
+    });
+  }
+}
