@@ -1,0 +1,225 @@
+@mixin DefaultRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@mixin CenterRow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@mixin DefaultColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: space-between;
+}
+
+@function svw($v) {
+    @return calc((#{$v} * 100 / 512)*1vw);
+}
+
+@mixin CentertColumn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+@mixin size($v) {
+    width: $v;
+    height: $v;
+}
+
+@mixin gap($v, $direction: row) {
+    @if $direction ==row {
+        &>*:not(:last-child) {
+            margin-right: $v;
+        }
+    }
+
+    @else {
+        &>*:not(:last-child) {
+            margin-bottom: $v;
+        }
+    }
+}
+
+@mixin ButtonFullWidth {
+    width: 100%;
+    margin: 0 20px;
+}
+
+//组件布局
+$borderRadius1: svw(5);
+
+
+$padding1: svw(20);
+$padding2: svw(20);
+$padding3: svw(20);
+
+$fontSize1: svw(5);
+$fontSize2: svw(10);
+$fontSize3: svw(5);
+$fontSize4: svw(10);
+$fontSize5: svw(10);
+
+
+
+@mixin ButtonSize1 {
+    width: svw(10);
+    height: svw(10);
+}
+
+@mixin ButtonSize2 {
+    width: svw(45);
+    height: svw(20);
+}
+
+@mixin ButtonSize3 {
+    width: svw(10);
+    height: svw(10);
+}
+
+//
+$checkboxSize1: svw(5);
+$checkboxSize2: svw(5);
+$checkboxSize3: svw(5);
+//
+
+$backgroundColor: null;
+$backgroundHighlightColor: null;
+$cardColor: null;
+$buttonPrimaryColor: null;
+$textBoldColor: null;
+$textColor: null;
+
+$textHightLightColor: null;
+$InputBackgroundColor: null;
+$InputBorderHighlightColor: null;
+$InputDisabledColor: null;
+$InputPadding: svw(5);
+
+
+$SuccessColor: null;
+$DangerColor: null;
+$WarningColor: null;
+$DefaultColor: null;
+$PrimaryColor: null;
+$SecondaryColor: null;
+$TertiaryColor: null;
+$InfoColor: null;
+$ErrorColor: null;
+
+$DefaultTextColor: null;
+$SuccessTextColor: null;
+$DangerTextColor: null;
+$WarningTextColor: null;
+$PrimaryTextColor: null;
+$SecondaryTextColor: null;
+$TertiaryTextColor: null;
+$InfoTextColor: null;
+$ErrorTextColor: null;
+
+$LinkColor:null;
+@mixin TextButtonStyle{
+    background-color: transparent;
+    border: none;
+    outline: none;
+}
+@mixin Base {
+    &.App {
+        min-height: 100vh;
+        min-width: 100vw;
+        background-color: $backgroundColor;
+        color: $textColor;
+        font-size: $fontSize2;
+
+        strong {
+            color: $textBoldColor;
+        }
+
+        :deep(.Button) {
+            flex-shrink: 0;
+            @include ButtonSize2;
+            @include CenterRow;
+            border-radius: $borderRadius1;
+            background-color: $DefaultColor;
+            color: $DefaultTextColor;
+            cursor: pointer;
+        }
+
+        :deep(.ButtonGroup) {
+            display: flex;
+            align-items: center;
+            @include gap(svw(10));
+        }
+
+        .Card,
+        input {
+            border-radius: $borderRadius1;
+        }
+
+        :deep(.Input) {
+
+            &.Disabled {
+                input {
+                    pointer-events: none; //ban input
+                    color: $InputDisabledColor;
+                }
+            }
+
+            input {
+                padding: $InputPadding;
+                border: none;
+                outline: none;
+                background-color: $InputBackgroundColor;
+                color: $textColor;
+                box-sizing: content-box;
+                border-radius: $borderRadius1;
+
+                &:focus {
+                    outline: none;
+                }
+            }
+        }
+
+        :deep(.Form) {
+            @include gap(svw(10), column);
+
+        }
+
+        :deep(.FormItem) {
+            &.Required {
+                .FormLabel {
+                    display: flex;
+                    align-items: center;
+
+                    &::before {
+                        content: "*";
+                        transform: translateY(svw(1));
+                        color: $ErrorTextColor;
+                    }
+                }
+            }
+
+            .CenterWrapper {
+                @include DefaultRow;
+                @include gap(svw(10));
+            }
+
+            .Left,
+            .Right {
+                flex-shrink: 0;
+            }
+
+            .FormError {
+                margin-top: svw(5);
+                transform: translateX($InputPadding);
+                color: $ErrorTextColor;
+            }
+        }
+    }
+}

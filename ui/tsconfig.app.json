@@ -1,10 +1,17 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/histoire.setup.ts"],
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "jsx": "preserve",
+    "target": "ESNext",
     "composite": true,
+    "module":"esnext",
     "baseUrl": ".",
+    "lib": ["ESNext","DOM"],
     "paths": {
       "@/*": ["./src/*"]
     }

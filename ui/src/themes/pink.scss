@@ -1,0 +1,125 @@
+@font-face {
+    font-family: "PingFang-SC-Regular";
+    src:url("@/static/font/PingFang-SC-Regular.ttf");
+    font-weight: 400;
+  }
+
+  @mixin BottomLine{
+      border-bottom: 1px dashed  var(--lineGray);
+  }
+  @mixin DefaultRow{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+  @mixin DefaultCenterRow{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  @mixin DefaultColumn{
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items:center;
+  }
+  @mixin PosCenter{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+  }
+
+  @mixin DefaultCenterColumn{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items:center;
+  }
+
+  .UseBasic:not(.NoneDefaultStyle){
+      --pink:#FA3A67;
+      --red:#FE5545;
+      --gray:#909090;
+      --lineGray:rgba(112, 112, 112, 0.15);
+      --whiteGray:#F4F4F4;
+      --middleGray:#EBEBEB;
+      --orange:#FF5F0E;
+      --whitePink:#FEEBF0;
+      --softDark:#333333;
+      --softGray:#676767;
+      --softPink:#FFEBEF;
+      --softFleshYellow:#FFF4E5;
+      --yellow:#FF9008;
+      --softYellow:#FFF3A6;
+      --blue:#0852FF;
+      --softViolet:#DCE5FF;
+      background-color: var(--whiteGray);
+      height: 100vh;
+      width: 100vw;
+      font-family: "PingFang-SC-Regular";
+      .Row{
+          display: flex;
+      }
+      .Column{
+          display: flex;
+          flex-direction: column;
+      }
+      .Tag{
+          padding: 5rpx 0;
+          text-align: center;
+          border-radius: 10rpx;
+          &.Yellow{
+              background-color: var(--softYellow);
+              color: var(--yellow);
+          }
+          &.Blue{
+              background-color: var(--softViolet);
+              color: var(--blue);
+          }
+          &.Pink{
+              background-color: var(--softPink);
+              color: var(--pink)
+          }
+      }
+      .Form .Label{
+          font-weight: bold;
+      }
+      .List{
+
+          padding: 30rpx 25rpx 100rpx 25rpx ;
+          /deep/.ListItem{
+              padding: 40rpx;
+              background-color: white;
+              margin-top: 30rpx;
+              border-radius: 25rpx;
+              width: 100%;
+          }}
+      .Card{
+          padding: 40rpx 30rpx;
+          background-color: white;
+          border-radius: 30rpx;
+      }
+      .BtnGroup{
+          display: flex;
+          align-items: center;
+      }
+      .Button{
+          &.Default{
+              padding: 15rpx 55rpx;
+              border-radius: 40rpx;
+              text-align: center;
+          }
+          &.Default.Rect{
+              border-radius: 15rpx;
+          }
+          &.Primary{
+              background-color: var(--pink);
+              color: white;
+          }
+          &.Secondary{
+              background-color: var(--softPink);
+              color: var(--pink);
+          }
+
+  }}
