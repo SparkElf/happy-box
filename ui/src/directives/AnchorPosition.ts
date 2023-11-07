@@ -24,88 +24,74 @@ function equal(a: AnchorNode | undefined, b: AnchorNode) {
     }
     return true
 }
+
 /**
- * 首次绑定，将坐标系重新定位到target的左上角
- * @param el
- * @param target
- */
-async function coordinateTransform(el: HTMLElement, target: HTMLElement) {
-    let elBox = el.getBoundingClientRect()
-    let targetBox = target.getBoundingClientRect()
-    if (elBox.top !== targetBox.top || elBox.left !== targetBox.left || elBox.bottom !== targetBox.bottom || elBox.right !== targetBox.right) {
-        el.attributeStyleMap.set('position', 'fixed')
-        return () => {
-            elBox = el.getBoundingClientRect()
-            targetBox = target.getBoundingClientRect()
-            el.attributeStyleMap.set('left', CSS.px(  targetBox.left-elBox.left))
-            el.attributeStyleMap.set('top', CSS.px( targetBox.top - elBox.top))
-        }
-    }
-}
-/**
- * 追踪
+ * 渲染：每次移动后都先重新将坐标系移动到target的左上角
  * @param el
  * @param target
  * @param links
  */
-async function render(el: HTMLElement, target: HTMLElement, links: AnchorLink[]) {
+function render(el: HTMLElement, target: HTMLElement, links: AnchorLink[]) {
+    let elBox = el.getBoundingClientRect()
+    let targetBox = target.getBoundingClientRect()
+    el.attributeStyleMap.set('transform', new CSSTransformValue([new CSSTranslate(CSS.px(0), CSS.px(0))]))
 
+    elBox = el.getBoundingClientRect()
+    targetBox = target.getBoundingClientRect()
 
-    const elBox = el.getBoundingClientRect()
-    const targetBox = target.getBoundingClientRect()
-    console.log('render',el, target)
     links.forEach(link => {
         let distance = CSSNumericValue.parse(link.distance.toString()) as CSSUnitValue
         if (distance.unit === 'number') distance = CSS.px(distance.value)
         if (link.elEdge === 'left') {
             if (link.targetEdge === 'right') {
                 el.attributeStyleMap.set('transform', new CSSTransformValue([
-                    new CSSTranslate(new CSSMathSum(CSS.px(targetBox.width), distance), CSS.px(0))
+                    new CSSTranslate(new CSSMathSum(CSS.px(targetBox.left - elBox.left + targetBox.width), distance), CSS.px(targetBox.top - elBox.top))
                 ]))
             }
             else if (link.targetEdge === 'left') {
                 el.attributeStyleMap.set('transform', new CSSTransformValue([
-                    new CSSTranslate(distance, CSS.px(0))
+                    new CSSTranslate(CSS.px(targetBox.left - elBox.left + distance.value), CSS.px(targetBox.top - elBox.top))
                 ]))
             }
         }
         else if (link.elEdge === 'right') {
             if (link.targetEdge === 'left') {
                 el.attributeStyleMap.set('transform', new CSSTransformValue([
-                    new CSSTranslate(new CSSMathNegate(new CSSMathSum(CSS.px(elBox.width), distance)), CSS.px(0))
+                    new CSSTranslate(new CSSMathNegate(new CSSMathSum(CSS.px(targetBox.left - elBox.left + elBox.width), distance)), CSS.px(targetBox.top - elBox.top))
                 ]))
             }
             else if (link.targetEdge === 'right') {
                 el.attributeStyleMap.set('transform', new CSSTransformValue([
-                    new CSSTranslate( new CSSMathNegate(distance), CSS.px(0))
+                    new CSSTranslate(new CSSMathNegate(CSS.px(targetBox.left - elBox.left + distance.value)), CSS.px(targetBox.top - elBox.top))
                 ]))
             }
         }
         else if (link.elEdge === 'top') {
             if (link.targetEdge === 'bottom') {
                 el.attributeStyleMap.set('transform', new CSSTransformValue([
-                    new CSSTranslate(CSS.px(0), new CSSMathSum(CSS.px(targetBox.height), distance))
+                    new CSSTranslate(CSS.px(targetBox.left - elBox.left), CSS.px(targetBox.top - elBox.top + targetBox.height).add(distance))
                 ]))
             }
             else if (link.targetEdge === 'top') {
                 el.attributeStyleMap.set('transform', new CSSTransformValue([
-                    new CSSTranslate(CSS.px(0), distance)
+                    new CSSTranslate(CSS.px(targetBox.left - elBox.left), CSS.px(targetBox.top - elBox.top).add(distance))
                 ]))
             }
         }
         else if (link.elEdge === 'bottom') {
             if (link.targetEdge === 'top') {
                 el.attributeStyleMap.set('transform', new CSSTransformValue([
-                    new CSSTranslate(CSS.px(0), new CSSMathNegate(new CSSMathSum(CSS.px(targetBox.height), distance)))
+                    new CSSTranslate(CSS.px(targetBox.left - elBox.left), CSS.px(targetBox.top - elBox.top - targetBox.height).sub(distance))
                 ]))
             }
             else if (link.targetEdge === 'bottom') {
                 el.attributeStyleMap.set('transform', new CSSTransformValue([
-                    new CSSTranslate(CSS.px(0), new CSSMathNegate(distance))
+                    new CSSTranslate(CSS.px(targetBox.left - elBox.left), CSS.px(targetBox.top - elBox.top).sub(distance))
                 ]))
             }
         }
     })
+
 }
 export const vAnchor: Directive<HTMLElement, {
     target: HTMLElement | undefined,
@@ -128,10 +114,8 @@ export const vAnchor: Directive<HTMLElement, {
 
         if (equal(oldNode, newNode)) return
         m.set(el, newNode)
-        coordinateTransform(el,newNode.target).then(transform=>{
-            transform?.()
-            render(el, newNode.target!, newNode.links)
-            //newNode.cancelObserve = observeBoundingBox(newNode.target!, () => render(el, newNode.target!, newNode.links))
-        })
+        render(el, newNode.target!, newNode.links)
+        newNode.cancelObserve = observeBoundingBox(newNode.target!, () => render(el, newNode.target!, newNode.links))
+
     },
 }

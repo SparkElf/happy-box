@@ -189,6 +189,7 @@ const target9$ = ref<HTMLElement>()
 }
 
 .El {
+    position: relative;
     width: 100px;
     height: 100px;
     background: #f00;
@@ -199,6 +200,7 @@ const target9$ = ref<HTMLElement>()
 }
 
 .Target {
+
     width: 100px;
     height: 100px;
     background: #00f;
@@ -206,6 +208,6 @@ const target9$ = ref<HTMLElement>()
     display: flex;
     align-items: center;
     justify-content: center;
-    transform: translate(10px,20px);
+    transform: translate(10px,-200px);
 }
 </style>
