@@ -4,13 +4,13 @@
   </div>
 </template>
 <script setup lang="ts">
-import _json from "@/assets/json/RelationshipGraph/source.json"
+
 
 import { type EChartsOption, init, type EChartsType } from 'echarts';
 import { onMounted, watch } from 'vue';
 import { ref } from 'vue';
 
-import type { Neo4jServerData } from './type';
+import type { Neo4jServerData } from '@/components/RelationshipGraph/type';
 import { shallowRef } from "vue";
 import { useDragFixed, useGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
 
@@ -27,7 +27,7 @@ onMounted(async () => {
   let chartDom = container$.value;
   chart.value = init(chartDom!);
   chart.value.showLoading();
-  sourceData.value = (await import('@/assets/json/RelationshipGraph/source.json')).default as any
+  sourceData.value = (await import('@/assets/json/RelationshipGraph/data.json')).default as any
   console.log(sourceData.value)
   chart.value.hideLoading();
 })
@@ -47,11 +47,7 @@ watch(() => graphData.value, () => {
       {
         type: 'graph',
         layout: 'force',
-        categories: graphData.value.categories.map(category => {
-          return {
-            name: category
-          }
-        }),
+        categories: graphData.value.categories,
 
         symbolSize: 30,
         draggable: true,

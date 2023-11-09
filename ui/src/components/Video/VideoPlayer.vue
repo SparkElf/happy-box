@@ -44,5 +44,6 @@ onMounted(() => {
 
 .VideoContainer {
     width: 600px;
+    color: #030409;
 }
 </style>
