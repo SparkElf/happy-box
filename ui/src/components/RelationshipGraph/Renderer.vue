@@ -12,11 +12,11 @@ import { ref } from 'vue';
 
 import type { Neo4jServerData } from './type';
 import { shallowRef } from "vue";
-import { useDragFixed, useGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
+import { useDragFixed, useEchartsGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
 
 const container$ = ref<HTMLElement>();
 const sourceData = shallowRef<Neo4jServerData>()
-const graphData = useGraph({
+const graphData = useEchartsGraph({
   sourceData
 })
 

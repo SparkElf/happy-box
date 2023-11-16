@@ -5,6 +5,9 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  define:{
+    __DEV__:true//echarts环境变量
+  },
   server: {
     port: process.env.HISTOIRE ? 6007 : 3000,
   },

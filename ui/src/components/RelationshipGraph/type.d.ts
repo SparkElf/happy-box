@@ -36,6 +36,7 @@ declare type RelationshipEdge = {
     data:any
 
     labels?:string[]
+    value?:number
 }
 
 declare type RelationshipNode = {
@@ -56,6 +57,10 @@ declare type RelationshipNode = {
      * Fixed y position
      */
     y?: number;
+    fx?:number;//d3 node property
+    fy?:number;
+    vx?:number;
+    vy?:number;
     /**
      * If this node is fixed during force layout.
      */
@@ -63,7 +68,7 @@ declare type RelationshipNode = {
     /**
      * Index or name of category
      */
-    category?: string;
+    category?: string|number;
     draggable?: boolean;
     cursor?: string;
     /**
@@ -85,3 +90,5 @@ declare type RelationshipGraph = {
 }
 
 declare type RelationshipNext= Map<string, RelationshipEdge[]>
+
+declare type RelationshipDragCallback=(dx: number, dy: number, e: ECElementEvent) => void

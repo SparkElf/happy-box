@@ -7,24 +7,21 @@
 
 
 import { type EChartsOption, init, type EChartsType } from 'echarts';
+
 import { onMounted, watch } from 'vue';
 import { ref } from 'vue';
 
 import type { Neo4jServerData, RelationshipNode } from '@/components/RelationshipGraph/type';
 import { shallowRef } from "vue";
-import { useDragFixed, useGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
-import { forceSimulation, forceLink, forceManyBody, forceX, forceY, forceCenter, forceCollide, } from 'd3';
+import { updateGraph, updateNodes, useEchartsDrag, useEchartsGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
+import * as d3 from 'd3';
 
 const container$ = ref<HTMLElement>();
 const sourceData = shallowRef<Neo4jServerData>()
-const graphData = useGraph({
+const graphData = useEchartsGraph({
     sourceData
 })
-
 const chart = shallowRef<EChartsType>()
-
-//useDragFixed(graphData,chart)
-//useRightClickMenu(graphData,chart)
 onMounted(async () => {
     let chartDom = container$.value;
     chart.value = init(chartDom!, 'dark', {
@@ -36,20 +33,9 @@ onMounted(async () => {
     chart.value.hideLoading();
 })
 watch(graphData, () => {
-
+    const width = 800
+    const height = 600
     if (!graphData.value || !chart.value) return
-    console.log(graphData.value, 'graphData')
-    const d3nodes = graphData.value.nodes.map(node => ({ ...node }))
-    const d3edges = graphData.value.edges.map(edge => ({ ...edge }))
-
-    const simulation = forceSimulation(d3nodes)
-        .force("link", forceLink(d3edges).id((node, i) => graphData.value.nodes[i].id).distance(0))
-        .force("charge", forceManyBody().strength(-1))
-         .force("collide", forceCollide().radius((node,i) => graphData.value.nodes[i].symbolSize!/256))
-        .force("x", forceX())
-        .force("y", forceY())
-
-        .alphaDecay(0.0025);
 
     let option: EChartsOption = {
         tooltip: {},
@@ -58,6 +44,7 @@ watch(graphData, () => {
         }],
         backgroundColor: '',//透明
         cursor: 'pointer',
+
         series: [
             {
                 type: 'graph',
@@ -65,7 +52,7 @@ watch(graphData, () => {
                 categories: graphData.value.categories,
                 symbolSize: 30,
                 draggable: true,
-                edgeSymbol: ['none', 'arrow'],
+                //edgeSymbol: ['none', 'arrow'],
                 nodes: graphData.value.nodes,
                 edges: graphData.value.edges,
                 force: {
@@ -75,7 +62,7 @@ watch(graphData, () => {
                     initLayout: 'circular',
                     //layoutAnimation:false
                 },
-                animation:false,
+                animation: false,
                 labelLayout: {
                     hideOverlap: true
                 },
@@ -86,14 +73,15 @@ watch(graphData, () => {
                 // },
                 roam: true,
                 label: {
-                    show: true,
+                    //show: true,
                     position: 'right',
                     formatter: '{b}'
                 },
                 lineStyle: {
-                    color: 'target',
-                    curveness: 0.1
+                    color: 'source',
+                    curveness: 0.05
                 },
+                // autoCurveness:true,
                 selectedMode: 'multiple',
                 select: {
                     itemStyle: {
@@ -101,7 +89,7 @@ watch(graphData, () => {
                         shadowBlur: 10
                     }
                 },
-                legendHoverLink: true,
+                //legendHoverLink: true,
                 emphasis: {
                     focus: 'adjacency',
                     scale: 1.5,
@@ -113,31 +101,64 @@ watch(graphData, () => {
         ]
     };
     chart.value!.setOption(option);
-    console.log('graph init', option)
-    simulation.on("tick", () => {
-        simulation.nodes().forEach((node, index) => {
-            graphData.value.nodes[index].x = node.x!
-            graphData.value.nodes[index].y = node.y!
-        })
-        chart.value!.setOption({
-            series: [
-                {
-                    nodes: graphData.value.nodes,
-                    edges: graphData.value.edges
-                }
-            ]
-        } as EChartsOption)
-    })
-})
 
+    const d3nodes = graphData.value.nodes //graphData.value.nodes.map(node => ({ ...node }))//
+    const d3edges = graphData.value.edges.map(edge => ({ ...edge }))
+
+    let simulation = d3.forceSimulation(d3nodes)
+        .force("link", d3.forceLink(d3edges).id((node, i) => graphData.value.nodes[i].id).distance(1))//distance极大影响布局效果，默认30，越小聚类效果越好
+        .force("charge", d3.forceManyBody().strength(-1))
+        //.force("charge", d3.forceManyBody().strength(0.1))
+        .force("collide", d3.forceCollide().radius((node, i) => graphData.value.nodes[i].symbolSize! / 16))
+        .force("x", d3.forceX())
+        .force("y", d3.forceY())
+        //.force('radius',d3.forceRadial(Math.min(width,height),width/2,height/2).strength(-0.1))
+        //.force("center", d3.forceCenter(width / 2, height / 2))//中心力，设置之后，当画布移动后再模拟时，graph会平移
+        .on('tick', () => {
+            //updateNodes(chart, graphData.value.nodes)
+
+        })
+        .on('end', () => {
+            //console.log(graphData, 'simulation end')
+            chart.value?.hideLoading()
+            updateNodes(chart, graphData.value.nodes)
+        })
+        .alphaDecay(0.05)
+        .velocityDecay(0.1)
+    chart.value.showLoading()
+    let dragging = false
+    let dataIndex: number
+    let simulating = false
+    chart.value.on('mousedown', (e) => {
+        console.log('mouse down', e)
+        if (e.dataType !== 'node') return
+        dragging = true
+        dataIndex = e.dataIndex
+        simulation.stop()
+        simulation.alphaTarget(0.8).restart()
+    })
+    chart.value.getZr().on('mousemove', (e) => {
+        //console.log(e,graphData.value.nodes[0].vx)
+        if (!dragging) return
+        //simulation.tick()
+        const [x, y] = chart.value?.convertFromPixel({ seriesIndex: 0 }, [e.offsetX, e.offsetY]) as number[]
+        const node = graphData.value.nodes[dataIndex]
+        node.x = x
+        node.y = y
+        updateNodes(chart, graphData.value.nodes)
+    })
+    chart.value.getZr().on('mouseup', (e) => {
+        console.log('mouse up')
+        dragging = false
+        simulation.alphaTarget(0)
+    })
+
+})
 
 </script>
 <style lang="scss">
 .container {
-    width: 100%;
-    height: 100%;
     min-width: 800px;
     min-height: 600px;
-    //background-color: rgba($color: #000000, $alpha: .1);
 }
 </style>

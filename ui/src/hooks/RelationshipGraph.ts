@@ -1,15 +1,16 @@
-import type { Neo4jServerData, RelationshipNode, RelationshipEdge, RelationshipGraph } from "@/components/RelationshipGraph/type";
-import type { EChartsOption, EChartsType } from "echarts";
+import type { Neo4jServerData, RelationshipNode, RelationshipEdge, RelationshipGraph, RelationshipDragCallback } from "@/components/RelationshipGraph/type";
+import type { ECElementEvent, EChartsOption, EChartsType } from "echarts";
+import { shallowRef } from "vue";
 
 import { watch, type Ref, type ShallowRef, ref, computed } from "vue";
 
-export function useGraph({
+export function useEchartsGraph({
     sourceData,
 }: {
     sourceData: Ref<Neo4jServerData | undefined>
 }) {
     //neo4j->echarts id->name label->category name->label
-    const graph = ref<RelationshipGraph>({
+    const graph = shallowRef<RelationshipGraph>({
         categories: [],
         nodeMap: new Map(),
         edgeMap: new Map(),
@@ -38,7 +39,7 @@ export function useGraph({
         })
 
         res.categories = sourceData.value.categories
-        graph.value =res
+        graph.value = res
     })
 
     return graph
@@ -63,24 +64,46 @@ export const useCollapse = (graphData: ShallowRef<RelationshipGraph>) => {
 
 }
 
-export const useDragFixed = (graphData: ShallowRef<RelationshipGraph>, chart: ShallowRef<EChartsType | undefined>) => {
-    watch(chart, (oldv, newv) => {
+
+export const useEchartsDrag = (chart: ShallowRef<EChartsType | undefined>) => {
+    let x: number | undefined
+    let y: number | undefined
+    let dataType:string|undefined
+    const callbacks = ref<{dataType:string|undefined,callback:RelationshipDragCallback}[]>([])
+
+    watch(chart, async () => {
         if (chart.value == null) return
-        chart.value.on('mouseup', (params) => {
-            console.log(params, graphData.value)
-            if (params.dataType === 'node' && graphData.value && chart.value) {
-                graphData.value.nodes[params.dataIndex].fixed = true
-                graphData.value.nodes[params.dataIndex].x = params.event?.offsetX
-                graphData.value.nodes[params.dataIndex].y = params.event?.offsetY
-                let option: EChartsOption = {
-                    series: {
-                        nodes: graphData.value.nodes
-                    }
-                }
-                chart.value?.setOption(option)
-            }
+        console.log('done', chart.value == null)
+        chart.value?.on('mousedown', (e) => {
+            console.log('mouse down drag', e)
+            x = e.event!.offsetX
+            y = e.event!.offsetY
+            dataType=e.dataType
+        })
+        chart.value?.on('mousemove', e => {
+            //console.log(x, y, 'move')
+            if (x === undefined || y === undefined) return
+            console.log('mouse move drag',e.offsetX,e.offsetY)
+            callbacks.value.forEach(item => {
+                console.log('item',item.dataType,dataType)
+                if(item.dataType===dataType&&item.dataType===e.dataType)
+                    item.callback(e.event!.offsetX - x!, e.event!.offsetY - y!, e)
+            })
+            x = e.event!.offsetX
+            y = e.event!.offsetY
+        })
+        chart.value?.on('mouseup', (e) => {
+            console.log('mouse up drag')
+            x = undefined
+            y = undefined
+            dataType=undefined
         })
     })
+
+    return {onEchartDrag:(dataType:string|undefined,callback: RelationshipDragCallback) => { callbacks.value.push({
+        dataType,
+        callback
+    }) }}
 }
 
 export const useRightClickMenu = (graphData: Ref<RelationshipGraph>, chart: ShallowRef<EChartsType | undefined>) => {
@@ -93,4 +116,69 @@ export const useRightClickMenu = (graphData: Ref<RelationshipGraph>, chart: Shal
             console.log(e, e.target, e.type)
         })
     })
+}
+
+export const clearEchartEvent = (chart: ShallowRef<EChartsType | undefined>) => {
+    if (chart.value == null) return
+    const eventList = ['click', 'dbclick', 'contextmenu', 'mouseup', 'mousedown', 'mouseover', 'mousemove', 'globalout']
+    eventList.forEach(e => chart.value?.off(e))
+
+}
+export const updateGraph = (chart: ShallowRef<EChartsType | undefined>,graphData:Ref<RelationshipGraph>) => {
+    if (chart.value == null) return
+    chart.value.setOption({
+        series:[{
+            nodes:graphData.value.nodes,
+            edges:graphData.value.edges
+        }]
+    } as EChartsOption,false,true)
+
+}
+export const updateNodes = (chart: ShallowRef<EChartsType | undefined>,nodes:RelationshipNode[]) => {
+    if (chart.value == null) return
+    chart.value.setOption({
+        series:[{
+            nodes:nodes
+        }]
+    } as EChartsOption,false,true)
+
+}
+export const updateEdges = (chart: ShallowRef<EChartsType | undefined>,edges:RelationshipEdge[]) => {
+    if (chart.value == null) return
+    chart.value.setOption({
+        series:[{
+            edges:edges
+        }]
+    } as EChartsOption,false,true)
+
+}
+export const refresh=(chart: ShallowRef<EChartsType | undefined>)=>{
+    if (chart.value == null) return
+    chart.value.getZr().refreshImmediately(true)
+    //chart.value.setOption(null as EChartsOption)
+    //chart.value.resize({width:800+Math.random()/100})
+}
+
+export const toEchartsGraph=({
+    sourceData,
+}: {
+    sourceData: Ref<Neo4jServerData | undefined>
+})=>{
+    
+}
+
+export const toG6Graph=({
+    sourceData,
+}: {
+    sourceData: Ref<Neo4jServerData | undefined>
+})=>{
+
+}
+
+export const toD3Graph=({
+    sourceData,
+}: {
+    sourceData: Ref<Neo4jServerData | undefined>
+})=>{
+
 }

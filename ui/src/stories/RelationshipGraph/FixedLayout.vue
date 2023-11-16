@@ -4,7 +4,7 @@
     </div>
   </template>
   <script setup lang="ts">
-  
+
 
   import { type EChartsOption, init, type EChartsType } from 'echarts';
   import { onMounted, watch } from 'vue';
@@ -12,11 +12,11 @@
 
   import type { Neo4jServerData } from '@/components/RelationshipGraph/type';
   import { shallowRef } from "vue";
-  import { useDragFixed, useGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
+  import {  useEchartsGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
 
   const container$ = ref<HTMLElement>();
   const sourceData = shallowRef<Neo4jServerData>()
-  const graphData = useGraph({
+  const graphData = useEchartsGraph({
     sourceData
   })
 
@@ -49,13 +49,13 @@
           layout: 'none',
           categories: graphData.value.categories.map(category => {
             return {
-              name: category
+              name: category.name
             }
           }),
 
           symbolSize: 30,
           draggable: true,
-          edgeSymbol: ['none', 'arrow'],
+         // edgeSymbol: ['none', 'arrow'],
           nodes: graphData.value.nodes,
           edges: graphData.value.edges,
           force: {
@@ -65,6 +65,9 @@
             initLayout:'circular',
             //layoutAnimation:false
           },
+          labelLayout:{
+            hideOverlap:true,
+          },
           // itemStyle: {
           //   borderWidth: 1,
           //   borderType: 'solid',
@@ -72,14 +75,15 @@
           // },
           roam: true,
           label: {
-            show: true,
+            //show: true,
             position: 'right',
             formatter: '{b}'
           },
           lineStyle: {
             color: 'target',
-            curveness:0.1
+            //curveness:0.1
           },
+          autoCurveness:true,
           selectedMode:'multiple',
           select:{
             itemStyle:{

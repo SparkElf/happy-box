@@ -12,11 +12,11 @@ import { ref } from 'vue';
 
 import type { Neo4jServerData } from '@/components/RelationshipGraph/type';
 import { shallowRef } from "vue";
-import { useDragFixed, useGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
+import {  useEchartsGraph, useRightClickMenu } from "@/hooks/RelationshipGraph";
 
 const container$ = ref<HTMLElement>();
 const sourceData = shallowRef<Neo4jServerData>()
-const graphData = useGraph({
+const graphData = useEchartsGraph({
   sourceData
 })
 
@@ -51,7 +51,7 @@ watch(() => graphData.value, () => {
 
         symbolSize: 30,
         draggable: true,
-        edgeSymbol: ['none', 'arrow'],
+        //edgeSymbol: ['none', 'arrow'],
         nodes: graphData.value.nodes,
         edges: graphData.value.edges,
         force: {
@@ -59,16 +59,18 @@ watch(() => graphData.value, () => {
           repulsion: 500,
           gravity: 0.2,
           initLayout:'circular',
-          //layoutAnimation:false
+          layoutAnimation:false
         },
+        animationDurationUpdate: 0,//不设置为0，当layoutAnimation为false时缩放时会有异常 https://github.com/apache/echarts/issues/12211
         // itemStyle: {
         //   borderWidth: 1,
         //   borderType: 'solid',
         //   borderColor: '#000000'
         // },
+
         roam: true,
         label: {
-          show: true,
+          //show: true,
           position: 'right',
           formatter: '{b}'
         },
@@ -95,7 +97,7 @@ watch(() => graphData.value, () => {
     ]
   };
   chart.value.setOption(option);
-  console.log('graph init')
+
 })
 
 
@@ -104,6 +106,5 @@ watch(() => graphData.value, () => {
 .container {
   min-width: 600px;
   min-height: 600px;
-  //background-color: rgba($color: #000000, $alpha: .1);
 }
 </style>
