@@ -21,6 +21,13 @@
     @return calc((#{$v} * 100 / 512)*1vw);
 }
 
+@function uvw($px,$width:1920,$height:1080){//unit vw
+    @return $px / $width * 100vw;
+}
+@function uvh($px,$width:1920,$height:1080){//unit vw
+    @return $px / $height * 100vh;
+}
+
 @mixin CentertColumn {
     display: flex;
     flex-direction: column;
