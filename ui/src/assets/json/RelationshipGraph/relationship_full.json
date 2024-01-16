@@ -1,0 +1,976 @@
+{
+    "nodes": [
+        {
+            "identity": 143,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "143",
+            "id": "143",
+            "center": true
+        },
+        {
+            "identity": 952,
+            "labels": [
+                "Car"
+            ],
+            "elementId": "952",
+            "id": "952",
+            "center": true
+        },
+        {
+            "identity": 144,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "144",
+            "id": "144"
+        },
+        {
+            "identity": 910,
+            "labels": [
+                "Shop"
+            ],
+            "elementId": "910",
+            "id": "910"
+        },
+        {
+            "identity": 896,
+            "labels": [
+                "Shop"
+            ],
+            "elementId": "896",
+            "id": "896"
+        },
+        {
+            "identity": 840,
+            "labels": [
+                "Shop"
+            ],
+            "elementId": "840",
+            "id": "840"
+        },
+        {
+            "identity": 831,
+            "labels": [
+                "Shop"
+            ],
+            "elementId": "831",
+            "id": "831"
+        },
+        {
+            "identity": 1045,
+            "labels": [
+                "Phone"
+            ],
+            "elementId": "1045",
+            "id": "1045"
+        },
+        {
+            "identity": 147,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "147",
+            "id": "147"
+        },
+        {
+            "identity": 148,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "148",
+            "id": "148"
+        },
+        {
+            "identity": 182,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "182",
+            "id": "182"
+        },
+        {
+            "identity": 181,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "181",
+            "id": "181"
+        },
+        {
+            "identity": 180,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "180",
+            "id": "180"
+        },
+        {
+            "identity": 112,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "112",
+            "id": "112"
+        },
+        {
+            "identity": 111,
+            "labels": [
+                "Person"
+            ],
+            "elementId": "111",
+            "id": "111"
+        },
+        {
+            "identity": 1044,
+            "labels": [
+                "Phone"
+            ],
+            "elementId": "1044",
+            "id": "1044"
+        }
+    ],
+    "edges": [
+        {
+            "identity": 1082,
+            "start": 143,
+            "end": 952,
+            "type": "OWN",
+            "elementId": "1082",
+            "startNodeElementId": "143",
+            "endNodeElementId": "952",
+            "id": "1082",
+            "source": "143",
+            "target": "952"
+        },
+        {
+            "identity": 974,
+            "start": 143,
+            "end": 144,
+            "type": "KINSHIP",
+            "elementId": "974",
+            "startNodeElementId": "143",
+            "endNodeElementId": "144",
+            "id": "974",
+            "source": "143",
+            "target": "144"
+        },
+        {
+            "identity": 801,
+            "start": 144,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "801",
+            "startNodeElementId": "144",
+            "endNodeElementId": "910",
+            "id": "801",
+            "source": "144",
+            "target": "910"
+        },
+        {
+            "identity": 716,
+            "start": 144,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "716",
+            "startNodeElementId": "144",
+            "endNodeElementId": "896",
+            "id": "716",
+            "source": "144",
+            "target": "896"
+        },
+        {
+            "identity": 516,
+            "start": 144,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "516",
+            "startNodeElementId": "144",
+            "endNodeElementId": "840",
+            "id": "516",
+            "source": "144",
+            "target": "840"
+        },
+        {
+            "identity": 469,
+            "start": 144,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "469",
+            "startNodeElementId": "144",
+            "endNodeElementId": "831",
+            "id": "469",
+            "source": "144",
+            "target": "831"
+        },
+        {
+            "identity": 61,
+            "start": 144,
+            "end": 1045,
+            "type": "OWN",
+            "elementId": "61",
+            "startNodeElementId": "144",
+            "endNodeElementId": "1045",
+            "id": "61",
+            "source": "144",
+            "target": "1045"
+        },
+        {
+            "identity": 961,
+            "start": 143,
+            "end": 147,
+            "type": "KINSHIP",
+            "elementId": "961",
+            "startNodeElementId": "143",
+            "endNodeElementId": "147",
+            "id": "961",
+            "source": "143",
+            "target": "147"
+        },
+        {
+            "identity": 960,
+            "start": 143,
+            "end": 148,
+            "type": "KINSHIP",
+            "elementId": "960",
+            "startNodeElementId": "143",
+            "endNodeElementId": "148",
+            "id": "960",
+            "source": "143",
+            "target": "148"
+        },
+        {
+            "identity": 804,
+            "start": 182,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "804",
+            "startNodeElementId": "182",
+            "endNodeElementId": "910",
+            "id": "804",
+            "source": "182",
+            "target": "910"
+        },
+        {
+            "identity": 803,
+            "start": 181,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "803",
+            "startNodeElementId": "181",
+            "endNodeElementId": "910",
+            "id": "803",
+            "source": "181",
+            "target": "910"
+        },
+        {
+            "identity": 802,
+            "start": 180,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "802",
+            "startNodeElementId": "180",
+            "endNodeElementId": "910",
+            "id": "802",
+            "source": "180",
+            "target": "910"
+        },
+        {
+            "identity": 801,
+            "start": 144,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "801",
+            "startNodeElementId": "144",
+            "endNodeElementId": "910",
+            "id": "801",
+            "source": "144",
+            "target": "910"
+        },
+        {
+            "identity": 800,
+            "start": 143,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "800",
+            "startNodeElementId": "143",
+            "endNodeElementId": "910",
+            "id": "800",
+            "source": "143",
+            "target": "910"
+        },
+        {
+            "identity": 799,
+            "start": 112,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "799",
+            "startNodeElementId": "112",
+            "endNodeElementId": "910",
+            "id": "799",
+            "source": "112",
+            "target": "910"
+        },
+        {
+            "identity": 798,
+            "start": 111,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "798",
+            "startNodeElementId": "111",
+            "endNodeElementId": "910",
+            "id": "798",
+            "source": "111",
+            "target": "910"
+        },
+        {
+            "identity": 719,
+            "start": 182,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "719",
+            "startNodeElementId": "182",
+            "endNodeElementId": "896",
+            "id": "719",
+            "source": "182",
+            "target": "896"
+        },
+        {
+            "identity": 718,
+            "start": 181,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "718",
+            "startNodeElementId": "181",
+            "endNodeElementId": "896",
+            "id": "718",
+            "source": "181",
+            "target": "896"
+        },
+        {
+            "identity": 717,
+            "start": 180,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "717",
+            "startNodeElementId": "180",
+            "endNodeElementId": "896",
+            "id": "717",
+            "source": "180",
+            "target": "896"
+        },
+        {
+            "identity": 716,
+            "start": 144,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "716",
+            "startNodeElementId": "144",
+            "endNodeElementId": "896",
+            "id": "716",
+            "source": "144",
+            "target": "896"
+        },
+        {
+            "identity": 715,
+            "start": 143,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "715",
+            "startNodeElementId": "143",
+            "endNodeElementId": "896",
+            "id": "715",
+            "source": "143",
+            "target": "896"
+        },
+        {
+            "identity": 714,
+            "start": 112,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "714",
+            "startNodeElementId": "112",
+            "endNodeElementId": "896",
+            "id": "714",
+            "source": "112",
+            "target": "896"
+        },
+        {
+            "identity": 713,
+            "start": 111,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "713",
+            "startNodeElementId": "111",
+            "endNodeElementId": "896",
+            "id": "713",
+            "source": "111",
+            "target": "896"
+        },
+        {
+            "identity": 519,
+            "start": 182,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "519",
+            "startNodeElementId": "182",
+            "endNodeElementId": "840",
+            "id": "519",
+            "source": "182",
+            "target": "840"
+        },
+        {
+            "identity": 518,
+            "start": 181,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "518",
+            "startNodeElementId": "181",
+            "endNodeElementId": "840",
+            "id": "518",
+            "source": "181",
+            "target": "840"
+        },
+        {
+            "identity": 517,
+            "start": 180,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "517",
+            "startNodeElementId": "180",
+            "endNodeElementId": "840",
+            "id": "517",
+            "source": "180",
+            "target": "840"
+        },
+        {
+            "identity": 516,
+            "start": 144,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "516",
+            "startNodeElementId": "144",
+            "endNodeElementId": "840",
+            "id": "516",
+            "source": "144",
+            "target": "840"
+        },
+        {
+            "identity": 515,
+            "start": 143,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "515",
+            "startNodeElementId": "143",
+            "endNodeElementId": "840",
+            "id": "515",
+            "source": "143",
+            "target": "840"
+        },
+        {
+            "identity": 514,
+            "start": 112,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "514",
+            "startNodeElementId": "112",
+            "endNodeElementId": "840",
+            "id": "514",
+            "source": "112",
+            "target": "840"
+        },
+        {
+            "identity": 513,
+            "start": 111,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "513",
+            "startNodeElementId": "111",
+            "endNodeElementId": "840",
+            "id": "513",
+            "source": "111",
+            "target": "840"
+        },
+        {
+            "identity": 472,
+            "start": 182,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "472",
+            "startNodeElementId": "182",
+            "endNodeElementId": "831",
+            "id": "472",
+            "source": "182",
+            "target": "831"
+        },
+        {
+            "identity": 471,
+            "start": 181,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "471",
+            "startNodeElementId": "181",
+            "endNodeElementId": "831",
+            "id": "471",
+            "source": "181",
+            "target": "831"
+        },
+        {
+            "identity": 470,
+            "start": 180,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "470",
+            "startNodeElementId": "180",
+            "endNodeElementId": "831",
+            "id": "470",
+            "source": "180",
+            "target": "831"
+        },
+        {
+            "identity": 469,
+            "start": 144,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "469",
+            "startNodeElementId": "144",
+            "endNodeElementId": "831",
+            "id": "469",
+            "source": "144",
+            "target": "831"
+        },
+        {
+            "identity": 468,
+            "start": 143,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "468",
+            "startNodeElementId": "143",
+            "endNodeElementId": "831",
+            "id": "468",
+            "source": "143",
+            "target": "831"
+        },
+        {
+            "identity": 467,
+            "start": 112,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "467",
+            "startNodeElementId": "112",
+            "endNodeElementId": "831",
+            "id": "467",
+            "source": "112",
+            "target": "831"
+        },
+        {
+            "identity": 466,
+            "start": 111,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "466",
+            "startNodeElementId": "111",
+            "endNodeElementId": "831",
+            "id": "466",
+            "source": "111",
+            "target": "831"
+        },
+        {
+            "identity": 60,
+            "start": 143,
+            "end": 1044,
+            "type": "OWN",
+            "elementId": "60",
+            "startNodeElementId": "143",
+            "endNodeElementId": "1044",
+            "id": "60",
+            "source": "143",
+            "target": "1044"
+        },
+        {
+            "identity": 804,
+            "start": 182,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "804",
+            "startNodeElementId": "182",
+            "endNodeElementId": "910",
+            "id": "804",
+            "source": "182",
+            "target": "910"
+        },
+        {
+            "identity": 719,
+            "start": 182,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "719",
+            "startNodeElementId": "182",
+            "endNodeElementId": "896",
+            "id": "719",
+            "source": "182",
+            "target": "896"
+        },
+        {
+            "identity": 519,
+            "start": 182,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "519",
+            "startNodeElementId": "182",
+            "endNodeElementId": "840",
+            "id": "519",
+            "source": "182",
+            "target": "840"
+        },
+        {
+            "identity": 472,
+            "start": 182,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "472",
+            "startNodeElementId": "182",
+            "endNodeElementId": "831",
+            "id": "472",
+            "source": "182",
+            "target": "831"
+        },
+        {
+            "identity": 966,
+            "start": 180,
+            "end": 181,
+            "type": "KINSHIP",
+            "elementId": "966",
+            "startNodeElementId": "180",
+            "endNodeElementId": "181",
+            "id": "966",
+            "source": "180",
+            "target": "181"
+        },
+        {
+            "identity": 803,
+            "start": 181,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "803",
+            "startNodeElementId": "181",
+            "endNodeElementId": "910",
+            "id": "803",
+            "source": "181",
+            "target": "910"
+        },
+        {
+            "identity": 718,
+            "start": 181,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "718",
+            "startNodeElementId": "181",
+            "endNodeElementId": "896",
+            "id": "718",
+            "source": "181",
+            "target": "896"
+        },
+        {
+            "identity": 518,
+            "start": 181,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "518",
+            "startNodeElementId": "181",
+            "endNodeElementId": "840",
+            "id": "518",
+            "source": "181",
+            "target": "840"
+        },
+        {
+            "identity": 471,
+            "start": 181,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "471",
+            "startNodeElementId": "181",
+            "endNodeElementId": "831",
+            "id": "471",
+            "source": "181",
+            "target": "831"
+        },
+        {
+            "identity": 966,
+            "start": 180,
+            "end": 181,
+            "type": "KINSHIP",
+            "elementId": "966",
+            "startNodeElementId": "180",
+            "endNodeElementId": "181",
+            "id": "966",
+            "source": "180",
+            "target": "181"
+        },
+        {
+            "identity": 802,
+            "start": 180,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "802",
+            "startNodeElementId": "180",
+            "endNodeElementId": "910",
+            "id": "802",
+            "source": "180",
+            "target": "910"
+        },
+        {
+            "identity": 717,
+            "start": 180,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "717",
+            "startNodeElementId": "180",
+            "endNodeElementId": "896",
+            "id": "717",
+            "source": "180",
+            "target": "896"
+        },
+        {
+            "identity": 517,
+            "start": 180,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "517",
+            "startNodeElementId": "180",
+            "endNodeElementId": "840",
+            "id": "517",
+            "source": "180",
+            "target": "840"
+        },
+        {
+            "identity": 470,
+            "start": 180,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "470",
+            "startNodeElementId": "180",
+            "endNodeElementId": "831",
+            "id": "470",
+            "source": "180",
+            "target": "831"
+        },
+        {
+            "identity": 799,
+            "start": 112,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "799",
+            "startNodeElementId": "112",
+            "endNodeElementId": "910",
+            "id": "799",
+            "source": "112",
+            "target": "910"
+        },
+        {
+            "identity": 714,
+            "start": 112,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "714",
+            "startNodeElementId": "112",
+            "endNodeElementId": "896",
+            "id": "714",
+            "source": "112",
+            "target": "896"
+        },
+        {
+            "identity": 514,
+            "start": 112,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "514",
+            "startNodeElementId": "112",
+            "endNodeElementId": "840",
+            "id": "514",
+            "source": "112",
+            "target": "840"
+        },
+        {
+            "identity": 467,
+            "start": 112,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "467",
+            "startNodeElementId": "112",
+            "endNodeElementId": "831",
+            "id": "467",
+            "source": "112",
+            "target": "831"
+        },
+        {
+            "identity": 798,
+            "start": 111,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "798",
+            "startNodeElementId": "111",
+            "endNodeElementId": "910",
+            "id": "798",
+            "source": "111",
+            "target": "910"
+        },
+        {
+            "identity": 713,
+            "start": 111,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "713",
+            "startNodeElementId": "111",
+            "endNodeElementId": "896",
+            "id": "713",
+            "source": "111",
+            "target": "896"
+        },
+        {
+            "identity": 513,
+            "start": 111,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "513",
+            "startNodeElementId": "111",
+            "endNodeElementId": "840",
+            "id": "513",
+            "source": "111",
+            "target": "840"
+        },
+        {
+            "identity": 466,
+            "start": 111,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "466",
+            "startNodeElementId": "111",
+            "endNodeElementId": "831",
+            "id": "466",
+            "source": "111",
+            "target": "831"
+        },
+        {
+            "identity": 61,
+            "start": 144,
+            "end": 1045,
+            "type": "OWN",
+            "elementId": "61",
+            "startNodeElementId": "144",
+            "endNodeElementId": "1045",
+            "id": "61",
+            "source": "144",
+            "target": "1045"
+        },
+        {
+            "identity": 1082,
+            "start": 143,
+            "end": 952,
+            "type": "OWN",
+            "elementId": "1082",
+            "startNodeElementId": "143",
+            "endNodeElementId": "952",
+            "id": "1082",
+            "source": "143",
+            "target": "952"
+        },
+        {
+            "identity": 974,
+            "start": 143,
+            "end": 144,
+            "type": "KINSHIP",
+            "elementId": "974",
+            "startNodeElementId": "143",
+            "endNodeElementId": "144",
+            "id": "974",
+            "source": "143",
+            "target": "144"
+        },
+        {
+            "identity": 961,
+            "start": 143,
+            "end": 147,
+            "type": "KINSHIP",
+            "elementId": "961",
+            "startNodeElementId": "143",
+            "endNodeElementId": "147",
+            "id": "961",
+            "source": "143",
+            "target": "147"
+        },
+        {
+            "identity": 960,
+            "start": 143,
+            "end": 148,
+            "type": "KINSHIP",
+            "elementId": "960",
+            "startNodeElementId": "143",
+            "endNodeElementId": "148",
+            "id": "960",
+            "source": "143",
+            "target": "148"
+        },
+        {
+            "identity": 800,
+            "start": 143,
+            "end": 910,
+            "type": "WORK_FOR",
+            "elementId": "800",
+            "startNodeElementId": "143",
+            "endNodeElementId": "910",
+            "id": "800",
+            "source": "143",
+            "target": "910"
+        },
+        {
+            "identity": 715,
+            "start": 143,
+            "end": 896,
+            "type": "WORK_FOR",
+            "elementId": "715",
+            "startNodeElementId": "143",
+            "endNodeElementId": "896",
+            "id": "715",
+            "source": "143",
+            "target": "896"
+        },
+        {
+            "identity": 515,
+            "start": 143,
+            "end": 840,
+            "type": "WORK_FOR",
+            "elementId": "515",
+            "startNodeElementId": "143",
+            "endNodeElementId": "840",
+            "id": "515",
+            "source": "143",
+            "target": "840"
+        },
+        {
+            "identity": 468,
+            "start": 143,
+            "end": 831,
+            "type": "WORK_FOR",
+            "elementId": "468",
+            "startNodeElementId": "143",
+            "endNodeElementId": "831",
+            "id": "468",
+            "source": "143",
+            "target": "831"
+        },
+        {
+            "identity": 60,
+            "start": 143,
+            "end": 1044,
+            "type": "OWN",
+            "elementId": "60",
+            "startNodeElementId": "143",
+            "endNodeElementId": "1044",
+            "id": "60",
+            "source": "143",
+            "target": "1044"
+        }
+    ]
+}

@@ -11,6 +11,7 @@ import Distance from './Distance.vue';
 import LegendSelect from './LegendSelect.vue';
 import EdgeValue from './EdgeValue.vue';
 import BloomLayout from './BloomLayout.vue';
+import SpanningTreeLayout from './SpanningTreeLayout.vue';
 const { theme } = storeToRefs(useStoryConfig())
 </script>
 <template>
@@ -53,6 +54,11 @@ const { theme } = storeToRefs(useStoryConfig())
         <Variant title="Bloom Layout">
             <div class="Wrapper">
                 <BloomLayout></BloomLayout>
+            </div>
+        </Variant>
+        <Variant title="Spanning Tree">
+            <div class="Wrapper">
+                <SpanningTreeLayout></SpanningTreeLayout>
             </div>
         </Variant>
         <template #controls>

@@ -104,12 +104,12 @@ watch(graphData, () => {
 
     const d3nodes = graphData.value.nodes //graphData.value.nodes.map(node => ({ ...node }))//
     const d3edges = graphData.value.edges.map(edge => ({ ...edge }))
-
+    console.log(d3nodes,d3edges)
     let simulation = d3.forceSimulation(d3nodes)
-        .force("link", d3.forceLink(d3edges).id((node, i) => graphData.value.nodes[i].id).distance(1))//distance极大影响布局效果，默认30，越小聚类效果越好
+        .force("link", d3.forceLink(d3edges).id((node, i) => node.id).distance(1))//distance极大影响布局效果，默认30，越小聚类效果越好
         .force("charge", d3.forceManyBody().strength(-1))
         //.force("charge", d3.forceManyBody().strength(0.1))
-        .force("collide", d3.forceCollide().radius((node, i) => graphData.value.nodes[i].symbolSize! / 16))
+        .force("collide", d3.forceCollide().radius((node, i) => node.symbolSize! / 16))
         .force("x", d3.forceX())
         .force("y", d3.forceY())
         //.force('radius',d3.forceRadial(Math.min(width,height),width/2,height/2).strength(-0.1))
@@ -141,6 +141,7 @@ watch(graphData, () => {
         //console.log(e,graphData.value.nodes[0].vx)
         if (!dragging) return
         //simulation.tick()
+        
         const [x, y] = chart.value?.convertFromPixel({ seriesIndex: 0 }, [e.offsetX, e.offsetY]) as number[]
         const node = graphData.value.nodes[dataIndex]
         node.x = x
@@ -167,27 +168,27 @@ watch(graphData, () => {
             const nodeSet = new Set<string>()
             nodes.forEach(node => nodeSet.add(node.id))
             const edges = graphData.value.edges.filter(edge => nodeSet.has(edge.source) && nodeSet.has(edge.target))
-            //simulation.restart()
-            // simulation = d3.forceSimulation(nodes)
-            //     .force("link", d3.forceLink(edges).id((node, i) => node.id).distance(1))//distance越大越紧凑
-            //     .force("charge", d3.forceManyBody().strength(-1))
-            //     //.force("charge", d3.forceManyBody().strength(1))
-            //     .force("collide", d3.forceCollide().radius((node, i) => node.symbolSize! / 16))
-            //     .force("x", d3.forceX())
-            //     .force("y", d3.forceY())
-            //     //.force('radius',d3.forceRadial(Math.min(width,height),width/2,height/2).strength(-0.1))
-            //     //.force("center", d3.forceCenter(width / 2, height / 2))//中心力，设置之后，当画布移动后再模拟时，graph会平移
-            //     .on('tick', () => {
-            //         updateNodes(chart, nodes)
-            //     })
-            //     .on('end', () => {
-            //         //console.log(graphData, 'simulation end')
-            //         updateNodes(chart, nodes)
-            //         chart.value?.hideLoading()
+            simulation.restart()
+            simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(edges).id((node, i) => node.id).distance(1))//distance越大越紧凑
+                .force("charge", d3.forceManyBody().strength(-1))
+                //.force("charge", d3.forceManyBody().strength(1))
+                .force("collide", d3.forceCollide().radius((node, i) => node.symbolSize! / 16))
+                .force("x", d3.forceX())
+                .force("y", d3.forceY())
+                //.force('radius',d3.forceRadial(Math.min(width,height),width/2,height/2).strength(-0.1))
+                //.force("center", d3.forceCenter(width / 2, height / 2))//中心力，设置之后，当画布移动后再模拟时，graph会平移
+                .on('tick', () => {
+                    updateNodes(chart, nodes)
+                })
+                .on('end', () => {
+                    //console.log(graphData, 'simulation end')
+                    updateNodes(chart, nodes)
+                    chart.value?.hideLoading()
 
-            //     })
-            //     //.alphaDecay(0.01)
-            //     .velocityDecay(0.1)
+                })
+                //.alphaDecay(0.01)
+                .velocityDecay(0.1)
         });
     })
 

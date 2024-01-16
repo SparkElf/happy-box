@@ -25,6 +25,5 @@ const {theme}=storeToRefs(useStoryConfig())
     min-width: fit-content !important;
     min-height: fit-content !important;
     background-color: transparent !important;
-
 }
 </style>
