@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import * as PIXI from 'pixi.js';
+
 import { Viewport } from 'pixi-viewport'
 import * as d3 from 'd3'
+import { Sprite, Graphics, Application, SCALE_MODES } from 'pixi.js';
 const pixiContainer$ = ref<HTMLDivElement | null>()
-declare type Node = PIXI.Sprite & {
+declare type Node = Sprite & {
     id?: string
     index?:number
     x: number
@@ -13,9 +14,9 @@ declare type Node = PIXI.Sprite & {
 }
 let nodes: Node[] = []
 let edges: any[] = []
-let edgeDrawer: PIXI.Graphics
+let edgeDrawer: Graphics
 let viewport: Viewport
-let app: PIXI.Application<HTMLCanvasElement>
+let app: Application<HTMLCanvasElement>
 let simulation: d3.Simulation<Node, undefined>
 function generateNodes(nodesNum = 50) {
     const nodes: Node[] = []
@@ -40,13 +41,12 @@ function generateEdges(nodes: Node[]) {
 }
 
 function initPixi() {
-    app = new PIXI.Application<HTMLCanvasElement>({ backgroundColor: 0xFFFFFF, resizeTo: pixiContainer$.value!,antialias: true  });
+    app = new Application<HTMLCanvasElement>({ backgroundColor: 0xFFFFFF, resizeTo: pixiContainer$.value!,antialias: true  });
     pixiContainer$.value!.appendChild(app.view as any)
     const viewport = new Viewport({
         screenWidth: window.innerWidth,
         screenHeight: window.innerHeight,
-        worldWidth: 1000,
-        worldHeight: 1000,
+
         events: app.renderer.events // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
     })
     app.stage.addChild(viewport)
@@ -59,12 +59,14 @@ function initPixi() {
 }
 function renderNodes() {
     nodes=nodes.map((node) => {
-        const circle = new PIXI.Graphics()
+        const circle = new Graphics()
         circle.beginFill(0x000000)
-        circle.drawCircle(node.x, node.y, node.props.radius)
+        circle.lineStyle({color:'red',width:10})
+        circle.drawCircle(0, 0, node.props.radius)
+
         circle.endFill()
-        const texture=app.renderer.generateTexture(circle,{scaleMode: PIXI.SCALE_MODES.LINEAR,resolution:2})
-        let sprite = new PIXI.Sprite(texture) as Node
+        const texture=app.renderer.generateTexture(circle,{scaleMode: SCALE_MODES.LINEAR,resolution:2})
+        let sprite = new Sprite(texture) as Node
         sprite = Object.assign(sprite, node)
         sprite.eventMode = 'static';//正常交互 dynamic表示还接受mock事件
         sprite.cursor = 'pointer'; // cursor change
@@ -74,7 +76,7 @@ function renderNodes() {
     })
 }
 function renderEdges(){
-    edgeDrawer = new PIXI.Graphics();
+    edgeDrawer = new Graphics();
     viewport.addChild(edgeDrawer)
 }
 function updateEdges() {

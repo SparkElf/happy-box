@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import * as PIXI from 'pixi.js';
+
 import Viewport from './PixiViewport.vue'
 import PixiForceGraph from './PixiForceGraph.vue';
 import PixiSymbol from './PixiSymbol.vue';
+import { Application, Sprite } from 'pixi.js';
 const pixiContainer$ = ref<HTMLDivElement | null>()
 onMounted(() => {
     if (!pixiContainer$.value) return
     console.log(pixiContainer$.value)
-    const app = new PIXI.Application<HTMLCanvasElement>({ background: '#1099bb', resizeTo: pixiContainer$.value });
+    const app = new Application<HTMLCanvasElement>({ background: '#1099bb', resizeTo: pixiContainer$.value });
     pixiContainer$.value?.appendChild(app.view as any)
-    const bunny = PIXI.Sprite.from('https://pixijs.com/assets/bunny.png')
+    const bunny = Sprite.from('https://pixijs.com/assets/bunny.png')
     app.stage.addChild(bunny)
     // center the sprite's anchor point
     bunny.anchor.set(0.5)

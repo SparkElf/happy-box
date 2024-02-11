@@ -12,7 +12,8 @@
     "module": "ESNext",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext","DOM"],
     "types": ["node"]
   }
 }

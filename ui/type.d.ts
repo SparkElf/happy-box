@@ -11,3 +11,4 @@ export declare type ToTupleRec<Union, Rslt extends any[]> =
     SpliceOne<Union> extends never ? [ExtractOne<Union>, ...Rslt]
     : ToTupleRec<SpliceOne<Union>, [ExtractOne<Union>, ...Rslt]>
 ;
+export type PickUnionTypeField<T extends Record<string | number | symbol,any>,U extends string|number|symbol> = T extends unknown ? T[U] : never

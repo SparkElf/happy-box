@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import * as PIXI from 'pixi.js';
+
 import { Viewport } from 'pixi-viewport'
+import { Application, Sprite } from 'pixi.js';
 const pixiContainer$ = ref<HTMLDivElement | null>()
 onMounted(() => {
     if (!pixiContainer$.value) return
     console.log(pixiContainer$.value)
-    const app = new PIXI.Application<HTMLCanvasElement>({ background: '#1099bb', resizeTo: pixiContainer$.value });
+    const app = new Application<HTMLCanvasElement>({ background: '#1099bb', resizeTo: pixiContainer$.value });
     const viewport = new Viewport({
         screenWidth: window.innerWidth,
         screenHeight: window.innerHeight,
@@ -23,7 +24,7 @@ onMounted(() => {
     .decelerate()
     pixiContainer$.value?.appendChild(app.view as any)
 
-    const bunny=viewport.addChild(PIXI.Sprite.from('https://pixijs.com/assets/bunny.png'))
+    const bunny=viewport.addChild(Sprite.from('https://pixijs.com/assets/bunny.png'))
     // Opt-in to interactivity
     bunny.eventMode = 'static';//正常交互 dynamic表示还接受mock事件
     bunny.cursor  = 'pointer'; // cursor change

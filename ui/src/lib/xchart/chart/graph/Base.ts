@@ -1,23 +1,37 @@
-import type { EdgeStyle, Rect } from "./style/NodeGraphic"
+import type { Graphics, Sprite } from "pixi.js"
+import type { ChartContext } from "../../Base"
+import type { ITexture } from "../../texture/basic"
 
-export type Node<NodeSymbol=any> = {
-    id:string,
-    x:number,
-    y:number,
+
+export type Node<NodeTextureProps=any> = {
+    id:string
+    index:number
+    x:number
+    y:number
+    vx:number
+    vy:number
+    fx:number
+    fy:number
     fixed:boolean
-    symbol:NodeSymbol
+    xTexture?:ITexture<NodeTextureProps>//避免和pixi的texture冲突
     data:any
-}
+}&Sprite
 
-export type Edge<NodeStyle=Rect> ={
-    souce:string,
-    target:string,
-    sourceNode:Node<NodeStyle>,
-    targetNode:Node<NodeStyle>,
-    style:EdgeStyle
+export type Edge<NodeType extends Node = Node<any>> ={
+    id:string
+    index:number
+    source:string
+    target:string
+    sourceNode:NodeType
+    targetNode:NodeType
     /**
      * ignore=true时边不参与链接力的计算
      */
     ignore:boolean
     data:any
+}&Graphics
+
+export type GraphChartContext<NodeType extends Node = Node<any> > = ChartContext&{
+    nodes:NodeType[],
+    edges:Edge<NodeType>[]
 }

@@ -1,3 +1,0 @@
-- 小核心-插件模式，ssr、svg、opengl、移动端移出内核
-- 编程采用esnext，兼容性支持由打包工具处理
-- typescript支持
