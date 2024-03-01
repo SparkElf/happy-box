@@ -1,7 +1,7 @@
 import { Force, jiggle, type ForceContext } from "./Force";
 import { type Node } from "../../Base";
 import { QuadNodeOperator, QuadTree } from "@/lib/xchart/algorithm/quadtree";
-export class CollideForce<NodeType extends Node<any> = Node<any>> extends Force<NodeType>{
+export class CollideForce<NodeType extends Node = Node<any>> extends Force<NodeType>{
   ctx!: ForceContext<NodeType>
   radii!: number[]
   radius: (node: NodeType, nodes: NodeType[]) => number = () => 1
@@ -69,14 +69,18 @@ export class CollideForce<NodeType extends Node<any> = Node<any>> extends Force<
   setRadius(radius: number | ((node: NodeType, nodes: NodeType[]) => number)) {
     if (typeof radius === 'function') this.radius = radius
     else this.radius = () => radius
+    return this
   }
   setIteration(iteration: number) {
     this.iteration = iteration
+    return this
   }
   setX(x: (node: NodeType) => number) {
     this.x = x
+    return this
   }
   setY(y: (node: NodeType) => number) {
     this.y = y
+    return this
   }
 }

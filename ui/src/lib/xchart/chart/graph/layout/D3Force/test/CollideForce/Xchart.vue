@@ -2,13 +2,13 @@
 import { onMounted, ref, shallowRef } from 'vue';
 
 import { Viewport } from 'pixi-viewport'
+import * as d3 from 'd3'
 import type { Edge, Node } from '@/lib/xchart/chart/graph/Base';
 import { Simulation } from '../../Simulation';
 import { EventCenter } from '@/lib/xchart/event';
 import { CenterForce } from '../../CenterForce';
 import { LinkForce } from '../../LinkForce';
-import { Graphics, Application, Sprite, SCALE_MODES } from 'pixi.js';
-import { ManyBodyForce } from '../../ManyBodyForce';
+import { Graphics, Application, SCALE_MODES, Sprite } from 'pixi.js';
 
 const pixiContainer$ = ref<HTMLDivElement | null>()
 const props = defineProps<{
@@ -79,10 +79,8 @@ function render() {
     renderEdges()
     let ctx = { eventCenter: new EventCenter(), nodes: nodes.value, edges: edges.value }
     simulation
-        .setAlphaDecay(0.005)
         .setForce('center', new CenterForce().setX(300).setY(300))
-        .setForce('link', new LinkForce().setDistance(100))
-        .setForce('gravity', new ManyBodyForce().setStrength(-50))
+        .setForce('link', new LinkForce())
         .init(ctx)
         .on('d3ForceSimulationTick', () => {
             updateEdges()

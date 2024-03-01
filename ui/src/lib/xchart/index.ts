@@ -22,8 +22,11 @@ export class XChart{
             eventCenter:this.eventCenter,
             viewport:this.viewport
         }
+        app.stage.addChild(this.viewport)
 
         config.dom.appendChild(app.view as any)
+        //
+        window.__PIXI_APP__ = app
     }
     on=this.eventCenter.on
     off=this.eventCenter.off

@@ -31,7 +31,7 @@ function verifyTree(t1:QuadTree,t2:ReturnType<typeof quadtree<Node>>){
     expect(res1.length).toEqual(res2.length)
     for(let i=0;i<res1.length;i++){
         const node1=res1[i],node2=res2[i]
-        //console.log(node1,node2,'nodes')
+       
         expect(node1.x0).toEqual(node2.x0)
         expect(node1.x1).toEqual(node2.x1)
         expect(node1.y0).toEqual(node2.y0)

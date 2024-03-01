@@ -2,31 +2,24 @@
 import { onMounted, ref, shallowRef } from 'vue';
 
 import { Viewport } from 'pixi-viewport'
+import {forceCenter, forceLink, forceSimulation} from '../d3-force/src'
 import type { Edge, Node } from '@/lib/xchart/chart/graph/Base';
-import { Simulation } from '../../Simulation';
-import { EventCenter } from '@/lib/xchart/event';
-import { CenterForce } from '../../CenterForce';
-import { LinkForce } from '../../LinkForce';
-import { Graphics, Application, Sprite, SCALE_MODES } from 'pixi.js';
-import { ManyBodyForce } from '../../ManyBodyForce';
-
+import { SCALE_MODES, Sprite,  Application,  Graphics } from 'pixi.js';
 const pixiContainer$ = ref<HTMLDivElement | null>()
-const props = defineProps<{
-    nodes: Node[]
-    edges: Edge<Node>[]
+const props=defineProps<{
+    nodes:Node[]
+    edges:Edge<Node>[]
 }>()
-
-const nodes = shallowRef(structuredClone(props.nodes))
-const edges = shallowRef(structuredClone(props.edges))
+const nodes=shallowRef(structuredClone(props.nodes))
+const edges=shallowRef(structuredClone(props.edges))
 
 let edgeDrawer: Graphics
 let viewport: Viewport
 let app: Application<HTMLCanvasElement>
-let simulation = new Simulation<Node>()
-
+let simulation: d3.Simulation<Node, undefined>
 
 function initPixi() {
-    app = new Application<HTMLCanvasElement>({ backgroundColor: 0xFFFFFF, resizeTo: pixiContainer$.value!, antialias: true });
+    app = new Application<HTMLCanvasElement>({ backgroundColor: 0xFFFFFF, resizeTo: pixiContainer$.value!,antialias: true  });
     pixiContainer$.value!.appendChild(app.view as any)
     const viewport = new Viewport({
         screenWidth: window.innerWidth,
@@ -42,13 +35,13 @@ function initPixi() {
     return viewport
 }
 function renderNodes() {
-    nodes.value = nodes.value.map((node) => {
+    nodes.value=nodes.value.map((node) => {
         const circle = new Graphics()
         circle.beginFill(0x000000)
-        circle.lineStyle({ color: 'red', width: 10 })
+        circle.lineStyle({color:'red',width:10})
         circle.drawCircle(0, 0, node.xTexture!.props.radius)
         circle.endFill()
-        const texture = app.renderer.generateTexture(circle, { scaleMode: SCALE_MODES.LINEAR, resolution: 2 })
+        const texture=app.renderer.generateTexture(circle,{scaleMode: SCALE_MODES.LINEAR,resolution:2})
         let sprite = new Sprite(texture) as Node
         sprite = Object.assign(sprite, node)
         sprite.eventMode = 'static';//正常交互 dynamic表示还接受mock事件
@@ -58,7 +51,7 @@ function renderNodes() {
         return sprite
     })
 }
-function renderEdges() {
+function renderEdges(){
     edgeDrawer = new Graphics();
     viewport.addChild(edgeDrawer)
 }
@@ -67,27 +60,34 @@ function updateEdges() {
     edgeDrawer.alpha = 0.07;
     edges.value.forEach(link => {
         let { source, target } = link;
-        edgeDrawer.lineStyle(1, 0x000000);
-        edgeDrawer.moveTo((link.sourceNode as any).x, (link.sourceNode as any).y);
-        edgeDrawer.lineTo((link.targetNode as any).x, (link.targetNode as any).y);
+        edgeDrawer.lineStyle((link as any).value, 0x000000);
+        edgeDrawer.moveTo((source as any).x, (source as any).y);
+        edgeDrawer.lineTo((target as any).x, (target as any).y);
     });
     edgeDrawer.endFill();
 }
 
 function render() {
+
+    const box = pixiContainer$.value!.getBoundingClientRect()
     renderNodes()
     renderEdges()
-    let ctx = { eventCenter: new EventCenter(), nodes: nodes.value, edges: edges.value }
-    simulation
-        .setAlphaDecay(0.005)
-        .setForce('center', new CenterForce().setX(300).setY(300))
-        .setForce('link', new LinkForce().setDistance(100))
-        .setForce('gravity', new ManyBodyForce().setStrength(-50))
-        .init(ctx)
-        .on('d3ForceSimulationTick', () => {
-            updateEdges()
-        })
-        .start()
+    const simulation =
+    forceSimulation(nodes.value)
+    .force(
+      "center",
+      forceCenter(box.width * 0.5,box.height * 0.5)
+    )
+    .force(
+      "link",
+
+        forceLink(edges.value)
+        .id((d:any) => (d as any).id!)
+    )
+    .on("tick", ()=>{
+        updateEdges()
+    });
+
 }
 onMounted(() => {
 

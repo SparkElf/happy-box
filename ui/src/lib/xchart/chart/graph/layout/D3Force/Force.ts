@@ -1,12 +1,12 @@
 import type { EventCenter } from "@/lib/xchart/event";
 import type { Edge, Node } from "../../Base";
 
-export abstract class Force<NodeType extends Node<any> = Node<any>> {
+export abstract class Force<NodeType extends Node = Node<any>> {
     abstract ctx:ForceContext<NodeType>
     abstract force(alpha:number,args?:any): void
     abstract init(ctx:ForceContext<NodeType>):void
 }
-export type ForceContext<NodeType extends Node<any> = Node<any>> = {
+export type ForceContext<NodeType extends Node = Node<any>> = {
     eventCenter:EventCenter
     nodes: NodeType[]
     edges: Edge<NodeType>[]

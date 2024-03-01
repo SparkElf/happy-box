@@ -9,7 +9,7 @@ import { CenterForce } from '../../CenterForce';
 import { LinkForce } from '../../LinkForce';
 import { Graphics, Application, Sprite, SCALE_MODES } from 'pixi.js';
 import { ManyBodyForce } from '../../ManyBodyForce';
-
+import { CollideForce } from '../../CollideForce';
 const pixiContainer$ = ref<HTMLDivElement | null>()
 const props = defineProps<{
     nodes: Node[]
@@ -83,6 +83,7 @@ function render() {
         .setForce('center', new CenterForce().setX(300).setY(300))
         .setForce('link', new LinkForce().setDistance(100))
         .setForce('gravity', new ManyBodyForce().setStrength(-50))
+        .setForce('collide',new CollideForce().setRadius(30))
         .init(ctx)
         .on('d3ForceSimulationTick', () => {
             updateEdges()

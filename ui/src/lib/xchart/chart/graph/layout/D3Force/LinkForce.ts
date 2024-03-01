@@ -8,6 +8,7 @@ export class LinkForce<NodeType extends Node<any> = Node<any>> extends Force<Nod
     private distances!: number[]
     private bias!: number[]
     private strength!: (edge: Edge<NodeType>) => number
+    private isDefaultStrength=true
     private distance!: (edge: Edge<NodeType>) => number
     private iteration!: (edges: Edge<NodeType>[]) => number
     constructor() {
@@ -19,7 +20,7 @@ export class LinkForce<NodeType extends Node<any> = Node<any>> extends Force<Nod
         const n = nodes.length, m = edges.length
         const count = new Array(n).fill(0)
         //其中 count(node) 是一个函数，返回以给定节点作为源或目标的链接数。选择此默认值是因为它会自动降低连接到密集连接节点的链路强度，从而提高稳定性。
-        this.strength ??= (edge) => (1 / Math.min(count[edge.sourceNode.index], count[edge.targetNode.index]))
+        if(this.isDefaultStrength)this.strength = (edge) => (1 / Math.min(count[edge.sourceNode.index], count[edge.targetNode.index]))
         this.iteration ??= () => 1
         this.distance ??= () => 30
 
@@ -36,11 +37,17 @@ export class LinkForce<NodeType extends Node<any> = Node<any>> extends Force<Nod
 
         this.strengths = new Array(m)
         this.distances = new Array(m)
-        this.initStrengths();
-        this.initDistances();
+
+        for (let i = 0; i < this.ctx.edges.length; ++i) {
+            this.strengths[i] = this.strength(this.ctx.edges[i]);
+        }
+        for (let i = 0; i < this.ctx.edges.length; ++i) {
+            this.distances[i] = this.distance(this.ctx.edges[i]);
+        }
+
     }
     force(alpha: number) {
-        console.log(this.distances)
+        //console.log(this.distances,this.strengths,'distances and strength')
         const edges = this.ctx.edges
         const iteration = this.iteration(edges)
         for (let k = 0; k < iteration; ++k) {
@@ -51,6 +58,7 @@ export class LinkForce<NodeType extends Node<any> = Node<any>> extends Force<Nod
                 let l = Math.sqrt(x * x + y * y), b;
                 l = (l - this.distances[i]) / l * alpha * this.strengths[i];
                 x *= l, y *= l;
+                //console.log(l,x,y)
                 targetNode.vx -= x * (b = this.bias[i]);
                 targetNode.vy -= y * b;
                 sourceNode.vx += x * (b = 1 - b);
@@ -65,7 +73,9 @@ export class LinkForce<NodeType extends Node<any> = Node<any>> extends Force<Nod
         else throw new Error("iteration must be a number or a function")
         return this
     }
-    setStrength(v: number | ((edge: Edge<any>) => number)) {
+    setStrength(v?: number | ((edge: Edge<any>) => number)) {
+        if(v==null)this.isDefaultStrength=true
+        else this.isDefaultStrength=false
         if (typeof v === 'function') this.strength = v
         else if (typeof v === 'number') this.strength = (edge: Edge<any>) => v
         else throw new Error("strength must be a number or a function")
@@ -76,17 +86,5 @@ export class LinkForce<NodeType extends Node<any> = Node<any>> extends Force<Nod
         else if (typeof v === 'number') this.distance = (edge: Edge<any>) => v
         else throw new Error("distance must be a number or a function")
         return this
-    }
-
-
-    private initStrengths() {
-        for (let i = 0; i < this.ctx.edges.length; ++i) {
-            this.strengths[i] = this.strength(this.ctx.edges[i]);
-        }
-    }
-    private initDistances() {
-        for (let i = 0; i < this.ctx.edges.length; ++i) {
-            this.distances[i] = this.distance(this.ctx.edges[i]);
-        }
     }
 }

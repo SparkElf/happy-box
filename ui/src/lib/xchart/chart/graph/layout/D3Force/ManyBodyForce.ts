@@ -95,11 +95,20 @@ export class ManyBodyForce<NodeType extends Node= Node<any>> extends Force<NodeT
   setStrength(strength: ((node: NodeType, nodes: NodeType[]) => number) | number) {
     if (typeof strength === 'function') this.strength = strength
     else this.strength = () => strength
+    return this
   }
   //theta参数决定近似的精度：如果四叉树单元的宽度 w 与节点到单元质心的距离 l 的比率 w / l 小于 theta，则处理给定单元中的所有节点作为单个节点而不是单独的。
   //theta大，精度低，速度快
   setTheta(theta:number){
     this.theta = theta
+    return this
+  }
+  setMinDistance(minDistance:number){
+    this.minDistance = minDistance
+    return this
+  }
+  setMaxDistance(maxDistance:number){
+    this.maxDistance = maxDistance
     return this
   }
 }

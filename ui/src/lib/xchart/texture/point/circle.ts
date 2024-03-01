@@ -23,18 +23,20 @@ export class CircleTexture extends ITexture<CircleTextureProps>{
         this.ctx=ctx
     }
 
-    draw(props?:CircleTextureProps): Texture<Resource> {
-        if(props)this.setProps(props)
+    draw(): Texture<Resource> {
         const circle = new Graphics()
         circle.beginFill(0x000000)
-        circle.lineStyle(this.props.border!)
+        if(this.props.border)circle.lineStyle(this.props.border!)
         circle.drawCircle(0,0,this.props.radius!)
         circle.endFill()
-        this.pixiTexture=this.ctx.pixiApp.renderer.generateTexture(circle,{scaleMode: SCALE_MODES.LINEAR,resolution:2})
+        this.ctx.pixiApp.renderer.options.antialias=true
+        this.ctx.pixiApp.renderer.options.resolution=window.devicePixelRatio
+        this.ctx.pixiApp.renderer.options.autoDensity=true
+        this.pixiTexture=this.ctx.pixiApp.renderer.generateTexture(circle,{scaleMode: SCALE_MODES.LINEAR })
         return this.pixiTexture
     }
     getTexture(): Texture<Resource> {
-        if(!this.pixiTexture)this.draw(this.props)
+        if(!this.pixiTexture)this.draw()
         return this.pixiTexture
     }
 }

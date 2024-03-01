@@ -4,7 +4,7 @@ import type { ChartContext, XChartContext } from '../../Base'
 import {  D3ForceLayout } from './layout'
 import { Chart } from '../Base'
 import type { ITexture } from '../../texture/basic'
-import { Container, type DisplayObject } from 'pixi.js'
+import { Container, Sprite, type DisplayObject, Graphics } from 'pixi.js'
 
 export type GraphProps<NodeType extends Node<any> = Node<any>> = {
     layout: D3ForceLayout<NodeType>
@@ -27,26 +27,38 @@ export class Graph<NodeType extends Node<any> = Node<any>, Layout extends D3Forc
 
     init(ctx: XChartContext): void {
         if (!this.ctx) this.ctx = Object.assign({}, ctx, { chartContainer: this.container,nodes:[],edges:[] })
+        this.ctx.viewport.addChild(this.container)
         if (!this.layoutInstance.ctx) this.layoutInstance.init(this.ctx)
         if (!this.viewInstance.ctx) this.viewInstance.init(this.ctx)
     }
     layout(args?: Parameters<Layout['layout']>[0]) {
-        this.layoutInstance.layout(args)
+        this.layoutInstance.layout()
         return this
     }
     draw(args?: any) {
         this.viewInstance.draw()
+        this.layoutInstance.props.simulation.on('d3ForceSimulationTick',()=>{
+            //console.log('tick')
+            console.log(this.ctx.nodes[0].x,'node')
+            this.viewInstance.redraw()
+        })
         return this
     }
-    setData({
-        nodes,
-        edges
-    }: {
-        nodes: NodeType[],
-        edges: Edge<NodeType>[]
+    setData(data: {
+        nodes?: NodeType[],
+        edges?: Edge<NodeType>[]
     }) {
-        this.ctx.nodes = nodes
-        this.ctx.edges = edges
+        const {nodes,edges}=data
+        if(nodes)
+            this.ctx.nodes = nodes.map(node=>Object.assign(new Sprite(),node))
+        if(edges)
+            this.ctx.edges = edges.map(edge=>Object.assign(new Graphics(),edge))
+        console.log(this.ctx.nodes[0].x,'2')
+        this.ctx.eventCenter.emit('updateGraphDataEvent',{type:'updateGraphDataEvent',data:{
+            nodes:nodes?this.ctx.nodes:undefined,
+            edges:edges?this.ctx.edges:undefined
+        } })
+
         return this
     }
 }

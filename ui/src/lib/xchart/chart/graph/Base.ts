@@ -17,7 +17,7 @@ export type Node<NodeTextureProps=any> = {
     data:any
 }&Sprite
 
-export type Edge<NodeType extends Node = Node<any>> ={
+export type Edge<NodeType extends Node = Node> ={
     id:string
     index:number
     source:string
@@ -31,7 +31,7 @@ export type Edge<NodeType extends Node = Node<any>> ={
     data:any
 }&Graphics
 
-export type GraphChartContext<NodeType extends Node = Node<any> > = ChartContext&{
+export type GraphChartContext<NodeType extends Node = Node > = ChartContext&{
     nodes:NodeType[],
     edges:Edge<NodeType>[]
 }

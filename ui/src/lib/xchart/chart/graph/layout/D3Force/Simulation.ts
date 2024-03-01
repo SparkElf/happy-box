@@ -6,7 +6,7 @@ import type { Node } from '../../Base'
 import type { D3ForceSimulationEventModel } from "../../event";
 import type { EventHandler, XchartEventMap } from "@/lib/xchart/event";
 export type D3ForceSimulationEventMap = XchartEventMap<D3ForceSimulationEventModel>
-export class Simulation<NodeType extends Node<any> = Node<any>>{
+export class Simulation<NodeType extends Node = Node>{
   ctx!: ForceContext<NodeType>
   alpha: number = 1;
   velocityDecay = 0.6
@@ -67,11 +67,11 @@ export class Simulation<NodeType extends Node<any> = Node<any>>{
     this.initNodes();
     this.initEdges()
     this.initForces()
-    //console.log(this.ctx.nodes,'xchart simulation inited')
+
     return this
   }
   tick() {
-    console.log('tick')
+
     for (let i = 0; i < this.tickIteration; ++i) {
       this.alpha += (this.alphaTarget - this.alpha) * this.alphaDecay;
 
@@ -89,7 +89,7 @@ export class Simulation<NodeType extends Node<any> = Node<any>>{
     if (this.alpha < this.alphaMin) {
       this.stop()
       this.ctx.eventCenter.emit('d3ForceSimulationEnd', { type: 'd3ForceSimulationEnd', simulation: this })
-      console.log('tick stop')
+
     }
     else window.requestAnimationFrame(()=>this.tick())
     return this;
@@ -126,16 +126,17 @@ export class Simulation<NodeType extends Node<any> = Node<any>>{
     }
     return node;
   }
-  private initEdges() {
-    console.log(this.nodeMap)
+  initEdges() {
+
     for (let i = 0; i < this.ctx.edges.length; i++) {
       const edge = this.ctx.edges[i]
       edge.index = i;
       edge.sourceNode = this.findNode(edge.source);
       edge.targetNode = this.findNode(edge.target);
     }
+
   }
-  private initNodes() {
+  initNodes() {
     this.nodeMap.clear()
     this.ctx.nodes.forEach(node => {
       this.nodeMap.set(this.nodeId(node), node)
@@ -157,7 +158,7 @@ export class Simulation<NodeType extends Node<any> = Node<any>>{
       }
     }
   }
-  private initForces() {
+  initForces() {
     this.forces.forEach(f => {
       f.init(this.ctx)
     })

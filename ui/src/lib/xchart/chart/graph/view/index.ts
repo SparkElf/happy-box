@@ -6,7 +6,7 @@ import type { ITexture } from '@/lib/xchart/texture/basic'
 import { CircleTexture } from '@/lib/xchart/texture'
 
 
-import  { Container,Sprite,type ILineStyleOptions, Graphics } from 'pixi.js'
+import  { Container,Sprite,type ILineStyleOptions, Graphics, SCALE_MODES } from 'pixi.js'
 
 
 export type GraphViewProps = {
@@ -15,9 +15,10 @@ export type GraphViewProps = {
 }
 export class GraphView<NodeType extends Node<any> = Node<any>> implements IView {
     ctx!: GraphChartContext<NodeType>//使用依赖注入
-    nodes!:NodeType[]
-    edges!:Edge<NodeType>[]
+
     viewContainer!: Container
+    nodesContainer!:Container
+    edgesContainer!:Container
     props!: GraphViewProps
     constructor(props?: GraphViewProps) {
         this.props=Object.assign({},{
@@ -31,42 +32,42 @@ export class GraphView<NodeType extends Node<any> = Node<any>> implements IView 
         if (!this.props!.nodeTexture!.ctx) this.props.nodeTexture!.init(ctx)
 
         this.props=Object.assign(this.props,props)
-        this.viewContainer = new Container()
-        this.ctx.chartContainer.addChild(this.viewContainer)
+
+        this.ctx.chartContainer.addChild(this.viewContainer = new Container())
+        this.viewContainer.addChild(this.nodesContainer=new Container())
+        this.viewContainer.addChild(this.edgesContainer=new Container())
         return this
     }
     draw() {
+
         const nodes=this.ctx.nodes
         const edges=this.ctx.edges
         for(let i=0;i<nodes.length;i++){
             const node=nodes[i]
-            let sprite = new Sprite(node.texture ? node.xTexture!.draw() : this.props.nodeTexture!.draw())
-            nodes[i] = Object.assign(sprite, node)
-            sprite.eventMode = 'static';//正常交互 dynamic表示还接受mock事件
-            sprite.cursor = 'pointer'; // cursor change
-            sprite.anchor.set(0.5, 0.5) // center the sprite's anchor point
-            this.ctx.chartContainer.addChild(sprite)
+            node.texture=node.xTexture?node.xTexture.draw():this.props.nodeTexture!.draw()
+            node.eventMode = 'static';//正常交互 dynamic表示还接受mock事件
+            node.cursor = 'pointer'; // cursor change
+            node.anchor.set(0.5, 0.5) // center the sprite's anchor point
+            this.nodesContainer.addChild(node)
         }
         for(let i=0;i<edges.length;i++){
             const edge=edges[i]
-            let edgeGraphic = new Graphics()
-            edges[i]=Object.assign(edgeGraphic,edge)
-            edgeGraphic.lineStyle(this.props.lineStyle)
-            console.log(edgeGraphic)
-            edgeGraphic.moveTo(edge.sourceNode.x, edge.sourceNode.y)
-            edgeGraphic.lineTo(edge.targetNode.x, edge.targetNode.y)
-            this.ctx.chartContainer.addChild(edgeGraphic)
+            
+            edge.lineStyle(this.props.lineStyle)
+            edge.moveTo(edge.sourceNode.x, edge.sourceNode.y)
+            edge.lineTo(edge.targetNode.x, edge.targetNode.y)
+            this.edgesContainer.addChild(edge)
         }
-        this.nodes=nodes
-        this.edges=edges
+
         return this
     }
     redraw(){
-        this.edges.forEach(edge=>{
+        this.ctx.edges.forEach(edge=>{
             edge.clear()
             edge.lineStyle(this.props.lineStyle)
             edge.moveTo(edge.sourceNode.x, edge.sourceNode.y)
             edge.lineTo(edge.targetNode.x, edge.targetNode.y)
+            edge.endFill();
         })
         return this
     }

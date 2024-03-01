@@ -12,3 +12,6 @@ export declare type ToTupleRec<Union, Rslt extends any[]> =
     : ToTupleRec<SpliceOne<Union>, [ExtractOne<Union>, ...Rslt]>
 ;
 export type PickUnionTypeField<T extends Record<string | number | symbol,any>,U extends string|number|symbol> = T extends unknown ? T[U] : never
+declare global {
+    interface Window { __PIXI_APP__: any; }
+}

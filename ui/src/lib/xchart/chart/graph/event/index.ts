@@ -1,12 +1,5 @@
+import type {Node, Edge } from "../Base"
 import type { Simulation } from "../layout/D3Force/Simulation"
-
-export type BeforeForceLayoutStepEventModel={
-    type:'beforeForceLayoutStep'
-}
-export type AfterForceLayoutStepEventModel={
-    type:'afterForceLayoutStep'
-}
-
 
 export type D3ForceSimulationTickEventModel={
     type:'d3ForceSimulationTick'
@@ -17,4 +10,11 @@ export type D3ForceSimulationEndEventModel={
     simulation:Simulation<any>
 }
 export type D3ForceSimulationEventModel=D3ForceSimulationTickEventModel|D3ForceSimulationEndEventModel
-export type GraphEventModels=BeforeForceLayoutStepEventModel|AfterForceLayoutStepEventModel|D3ForceSimulationEventModel
+export type UpdateGraphDataEventModel={
+    type:'updateGraphDataEvent'
+    data:{
+        nodes?:Node[]
+        edges?:Edge[]
+    }
+}
+export type GraphEventModels=D3ForceSimulationEventModel|UpdateGraphDataEventModel

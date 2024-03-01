@@ -1,35 +1,53 @@
-import { Layout } from "../../../layout";
-import * as d3 from "d3";
-import { type Node, type Edge, type GraphChartContext } from '../../Base'
 
-export type D3ForceLayoutProps<NodeType extends Node<any> = Node<any>> = {
-    simulation?: d3.Simulation<NodeType, Edge<NodeType>>
+import { Layout } from "../../../layout";
+
+import { type Node, type Edge, type GraphChartContext } from '../../Base'
+import { CenterForce } from "./CenterForce";
+import { CollideForce } from "./CollideForce";
+import { LinkForce } from "./LinkForce";
+import { ManyBodyForce } from "./ManyBodyForce";
+import { Simulation } from "./Simulation";
+
+export type D3ForceLayoutProps<NodeType extends Node = Node> = {
+    simulation?: Simulation<NodeType>
 }
-export class D3ForceLayout<NodeType extends Node<any> = Node<any>> extends Layout<D3ForceLayoutProps<NodeType>>{
+export class D3ForceLayout<NodeType extends Node = Node> extends Layout<D3ForceLayoutProps<NodeType>>{
     ctx!: GraphChartContext<NodeType>
     props!: Required<D3ForceLayoutProps<NodeType>>
     constructor(props: D3ForceLayoutProps<NodeType>) {
         super()
         this.props = Object.assign({}, props) as any
     }
-    init(ctx: GraphChartContext<NodeType>): void {
+    init(ctx: GraphChartContext<NodeType>) {
         this.ctx = ctx
-    }
-    layout(props?:  D3ForceLayoutProps<NodeType> ): void {
-        let nodes: NodeType[]=this.ctx.nodes, edges: Edge<NodeType>[]=this.ctx.edges
-        this.props=Object.assign(this.props,props)
-
         if (!this.props.simulation) {
             const dom = this.ctx.pixiApp.view
-            this.props.simulation = d3.forceSimulation(nodes)
-                .force("link", d3.forceLink<NodeType, Edge<NodeType>>(edges).id((node,i) => {
-                    // console.log(node,typeof node.id,node.id)
-                    return node.id
-                }))
-                .force("charge", d3.forceManyBody())
-                .force("center", d3.forceCenter(dom.width / 2, dom.height / 2));
-        } else {
-            this.props.simulation.nodes(nodes).force("link", d3.forceLink<NodeType, Edge<NodeType>>(edges).id(d => d.id)).alpha(1).restart()
+            this.props.simulation =   new Simulation<NodeType>()
+            .setAlphaDecay(0.005)
+            .setForce('center', new CenterForce().setX(dom.width/2).setY(dom.height/2))
+            .setForce('link', new LinkForce().setDistance(100))
+            .setForce('gravity', new ManyBodyForce().setStrength(-50))
+            .setForce('collide',new CollideForce().setRadius(30))
+            .init(this.ctx)
         }
+        this.ctx.eventCenter.on('updateGraphDataEvent',(e)=>{
+            if(e.data.nodes)this.props.simulation.initNodes()
+            if(e.data.edges)this.props.simulation.initEdges()
+            this.props.simulation.initForces()
+            console.log(this.ctx.nodes[0].x,this.ctx.nodes[0].vx,'update')
+        })
+        return this
+    }
+    setProps(props:  D3ForceLayoutProps<NodeType>){
+        this.props=Object.assign(this.props,props)
+        this.init(this.ctx)
+        return this
+    }
+    layout(): void {
+        const simulation=this.props.simulation
+        if(simulation.alpha===1)
+            this.props.simulation.start()
+        else
+            this.props.simulation.restart()
     }
 }

@@ -1,4 +1,4 @@
-import type { utils ,DisplayObjectEvents} from "pixi.js"
+import type { utils, DisplayObjectEvents } from "pixi.js"
 import type { GraphEventModels } from "../chart/graph/event"
 
 
@@ -19,14 +19,10 @@ export type EventHandler<T extends EventType> = (e: EventMap[T]) => void
 export class EventCenter {
     eventHandlers: Map<EventType, Map<EventHandler<EventType>, EventHandler<EventType>>> = new Map()
     eventQueue: EventMap[keyof EventMap][] = []
-    //NOTE 外部可以 emit mousedown事件吗 ， 方便mock交互
-    //NOTE 调度串行设计，但是handler本身可以异步
     emit<T extends EventType>(eventType: T, e: EventMap[T]) {
-        requestAnimationFrame(()=>{
-            const handlers = this.eventHandlers.get(e.type)
-            if (!handlers) return
-            handlers.forEach(handler => handler(e))
-        })
+        const handlers = this.eventHandlers.get(e.type)
+        if (!handlers) return
+        handlers.forEach(handler => handler(e))
     }
     on<T extends EventType>(eventType: T, eventHandler: EventHandler<T>) {
         let handlers = this.eventHandlers.get(eventType)
