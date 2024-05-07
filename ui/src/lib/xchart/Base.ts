@@ -1,5 +1,5 @@
 
-import type { Application, Container, IApplicationOptions } from 'pixi.js'
+import type { Application, Container, ApplicationOptions } from 'pixi.js'
 import type { EventCenter } from './event'
 import type { Viewport } from 'pixi-viewport'
 export type XChartContext={
@@ -15,7 +15,7 @@ export type ViewContainer={
 }&ChartContext
 export type XchartConfig={
     dom:HTMLElement
-    pixiOptions?:Partial<IApplicationOptions>
+    pixiOptions?:Partial<ApplicationOptions>
     viewport?:Viewport
 }
 export abstract class IModule{

@@ -1,4 +1,4 @@
-import type { utils, DisplayObjectEvents } from "pixi.js"
+import type {FederatedEventMap} from "pixi.js"
 import type { GraphEventModels } from "../chart/graph/event"
 
 
@@ -8,19 +8,19 @@ export type XchartEventMap<EventModel extends { type: string } = XchartEventMode
     [key in EventModel['type']]: Extract<EventModel, { type: key }>
 }
 export type PixiEventMap = {
-    [key in keyof DisplayObjectEvents]: utils.EventEmitter.ArgumentMap<DisplayObjectEvents>[Extract<key, keyof DisplayObjectEvents>][0]
+    [key in keyof FederatedEventMap]: Omit<FederatedEventMap[key],'type'>&{type:key}
 }
-export type EventType = XchartEventModels['type'] | keyof DisplayObjectEvents
-
+export type EventType = XchartEventModels['type'] | keyof PixiEventMap
+//export type EventType = keyof PixiEventMap
 export type EventMap = XchartEventMap & PixiEventMap
+//export type EventMap = PixiEventMap
 export type EventHandler<T extends EventType> = (e: EventMap[T]) => void
-
 
 export class EventCenter {
     eventHandlers: Map<EventType, Map<EventHandler<EventType>, EventHandler<EventType>>> = new Map()
     eventQueue: EventMap[keyof EventMap][] = []
     emit<T extends EventType>(eventType: T, e: EventMap[T]) {
-        const handlers = this.eventHandlers.get(e.type)
+        const handlers = this.eventHandlers.get(eventType)
         if (!handlers) return
         handlers.forEach(handler => handler(e))
     }
@@ -34,7 +34,7 @@ export class EventCenter {
     }
     once<T extends EventType>(eventType: T, eventHandler: EventHandler<T>) {
         let handlers = this.eventHandlers.get(eventType)
-        const onceEventHandler = (e: EventMap[keyof EventMap]) => {
+        const onceEventHandler = (e: EventMap[T]) => {
             eventHandler(e)
             this.off(eventType, onceEventHandler)
         }
@@ -44,10 +44,10 @@ export class EventCenter {
         }
         handlers!.set(eventHandler as any, eventHandler as any)
     }
-    off(eventType: keyof EventMap, eventHandler: EventHandler<EventMap[keyof EventMap]>) {
+    off<T extends EventType>(eventType:T, eventHandler: EventHandler<T>) {
         const handlers = this.eventHandlers.get(eventType)
         if (!handlers) return
-        handlers.delete(eventHandler)
+        handlers.delete(eventHandler as EventHandler<EventType>)
     }
     // NOTE 调度需要轮询反而消耗资源，建议立即触发
     // process(){

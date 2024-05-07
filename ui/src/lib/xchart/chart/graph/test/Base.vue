@@ -16,9 +16,9 @@ const graphChart = shallowRef(new Graph({
     })
 }))
 
-onMounted(() => {
-    console.log(window.devicePixelRatio,'devicePixelRatio')
-    app.value = new XChart({
+onMounted(async () => {
+    app.value = new XChart()
+    await app.value.init({
         dom: pixiContainer$.value!,
         pixiOptions: {
             backgroundColor: 0xFFFFFF,

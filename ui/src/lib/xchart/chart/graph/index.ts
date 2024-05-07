@@ -4,7 +4,7 @@ import type { ChartContext, XChartContext } from '../../Base'
 import {  D3ForceLayout } from './layout'
 import { Chart } from '../Base'
 import type { ITexture } from '../../texture/basic'
-import { Container, Sprite, type DisplayObject, Graphics } from 'pixi.js'
+import { Container, Sprite,  Graphics } from 'pixi.js'
 
 export type GraphProps<NodeType extends Node<any> = Node<any>> = {
     layout: D3ForceLayout<NodeType>
@@ -13,7 +13,7 @@ export type GraphProps<NodeType extends Node<any> = Node<any>> = {
 export class Graph<NodeType extends Node<any> = Node<any>, Layout extends D3ForceLayout<NodeType> = D3ForceLayout<NodeType>, View extends GraphView<NodeType> = GraphView<NodeType> > extends Chart<Layout, View>{
     layoutInstance: Layout
     viewInstance: View
-    container: Container<DisplayObject>;
+    container: Container;
     textrue!: ITexture<NodeType>
     ctx!: GraphChartContext<NodeType>
     constructor(props: GraphProps<NodeType>, ctx?: XChartContext) {
