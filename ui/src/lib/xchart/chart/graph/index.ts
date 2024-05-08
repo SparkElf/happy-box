@@ -38,7 +38,7 @@ export class Graph<NodeType extends GraphNode<any> = GraphNode<any>, Layout exte
     draw(args?: any) {
         this.viewInstance.draw()
         this.layoutInstance.props.simulation.on('d3ForceSimulationTick',()=>{
-            //console.log('tick')
+            console.log('tick')
             //console.log(this.ctx.nodes[0].x,'node')
             this.viewInstance.redraw()
         })
@@ -53,7 +53,7 @@ export class Graph<NodeType extends GraphNode<any> = GraphNode<any>, Layout exte
             this.ctx.nodes = nodes.map(node=>Object.assign(new Sprite(),node))
         if(edges)
             this.ctx.edges = edges.map(edge=>Object.assign(new Graphics(),edge))
-        console.log(this.ctx.nodes[0].x,'2')
+
         this.ctx.eventCenter.emit('updateGraphDataEvent',{type:'updateGraphDataEvent',data:{
             nodes:nodes?this.ctx.nodes:undefined,
             edges:edges?this.ctx.edges:undefined

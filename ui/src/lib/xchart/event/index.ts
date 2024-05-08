@@ -20,6 +20,7 @@ export class EventCenter {
     eventHandlers: Map<EventType, Map<EventHandler<EventType>, EventHandler<EventType>>> = new Map()
     eventQueue: EventMap[keyof EventMap][] = []
     emit<T extends EventType>(eventType: T, e: EventMap[T]) {
+        console.log(eventType)
         const handlers = this.eventHandlers.get(eventType)
         if (!handlers) return
         handlers.forEach(handler => handler(e))

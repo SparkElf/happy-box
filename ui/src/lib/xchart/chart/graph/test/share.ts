@@ -1,5 +1,6 @@
-import type { GraphNode } from '@/lib/xchart/chart/graph/Base';
+import type { GraphEdge, GraphNode } from '@/lib/xchart/chart/graph/Base';
 import * as d3 from 'd3'
+import { createRandomInt } from '@/utils/mock';
 const width=600
 const height=600
 function generateNodes(nodesNum = 50) {
@@ -10,6 +11,7 @@ function generateNodes(nodesNum = 50) {
         node.y = Math.random() * height;
         node.index = i;
         node.id = i.toString();
+        node.category = createRandomInt(0,3)
         //node.xTexture={props:{radius:10}}
         nodes.push(node);
     }
@@ -24,5 +26,5 @@ function generateEdges(nodes: GraphNode[]) {
     return edges;
 }
 const nodes = generateNodes(500)
-const edges=generateEdges(nodes) as any[]
+const edges=generateEdges(nodes) as unknown as  GraphEdge[]
 export {nodes,edges}

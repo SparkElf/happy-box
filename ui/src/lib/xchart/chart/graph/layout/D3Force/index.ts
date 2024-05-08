@@ -34,7 +34,7 @@ export class D3ForceLayout<NodeType extends GraphNode = GraphNode> extends Layou
             if(e.data.nodes)this.props.simulation.initNodes()
             if(e.data.edges)this.props.simulation.initEdges()
             this.props.simulation.initForces()
-            console.log(this.ctx.nodes[0].x,this.ctx.nodes[0].vx,'update')
+
         })
         return this
     }
@@ -45,6 +45,7 @@ export class D3ForceLayout<NodeType extends GraphNode = GraphNode> extends Layou
     }
     layout(): void {
         const simulation=this.props.simulation
+        console.log(simulation.alpha,'simulation.alpha')
         if(simulation.alpha===1)
             this.props.simulation.start()
         else

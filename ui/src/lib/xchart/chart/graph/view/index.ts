@@ -39,7 +39,7 @@ export class GraphView<NodeType extends GraphNode<any> = GraphNode<any>> impleme
         return this
     }
     draw() {
-
+        this.clear()
         const nodes=this.ctx.nodes
         const edges=this.ctx.edges
         for(let i=0;i<edges.length;i++){
@@ -75,6 +75,8 @@ export class GraphView<NodeType extends GraphNode<any> = GraphNode<any>> impleme
     }
     clear(){
         this.ctx.chartContainer.removeChild(this.viewContainer)
-        this.viewContainer=new Container()
+        this.ctx.chartContainer.addChild(this.viewContainer = new Container({sortableChildren:true}))
+        this.viewContainer.addChild(this.nodesContainer=new Container({zIndex: 10}))
+        this.viewContainer.addChild(this.edgesContainer=new Container({zIndex: 9}))
     }
 }

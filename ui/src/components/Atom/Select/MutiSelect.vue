@@ -1,20 +1,26 @@
 <template>
     <div class="MultiSelect">
-        <slot v-for="(item,index) in props.data" :key="index" :item="item" :index="index" @click="changeSelected(index)"></slot>
+        <slot v-for="(item,index) in props.data" :key="index" :item="item" :index="index" :changeSelected="changeSelected"></slot>
     </div>
 </template>
-<script lang="ts" setup>
+<script lang="ts" setup generic="T">
 
-const [selecteds, selectedsModifiers] = defineModel<number[]>('selecteds',{required:true})
+const emits=defineEmits<{
+    (e:'update:selected',selecteds:number[]):void
+}>()
 const props=defineProps<{
-    data:any[]
+    data:T[]
+    selecteds:number[]
 }>()
 function changeSelected(index:number){
-    if(selecteds.value.includes(index)){
-        selecteds.value=selecteds.value.filter(item=>item!==index)
+    if(props.selecteds.includes(index)){
+        emits('update:selected',props.selecteds.filter(item=>item!==index))
+       
     }else{
-        selecteds.value.push(index)
+        props.selecteds.push(index)
+        emits('update:selected',[...props.selecteds])
     }
+
 }
 </script>
 <style scoped lang="scss">

@@ -99,7 +99,7 @@ export class Simulation<NodeType extends GraphNode = GraphNode>{
     return this
   }
   restart() {
-    this.start()
+    this.setAlpha(1).start()
     return this
   }
   stop() {

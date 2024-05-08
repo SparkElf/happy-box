@@ -6,4 +6,10 @@ export default defineConfig({
   plugins: [
     HstVue(),
   ],
+  vite:{
+    mode:'development',
+    build:{
+      sourcemap:true
+    }
+  }
 })
