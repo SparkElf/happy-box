@@ -1,17 +1,17 @@
 
 import { Layout } from "../../../layout";
 
-import { type Node, type Edge, type GraphChartContext } from '../../Base'
+import { type GraphNode, type GraphEdge, type GraphChartContext } from '../../Base'
 import { CenterForce } from "./CenterForce";
 import { CollideForce } from "./CollideForce";
 import { LinkForce } from "./LinkForce";
 import { ManyBodyForce } from "./ManyBodyForce";
 import { Simulation } from "./Simulation";
 
-export type D3ForceLayoutProps<NodeType extends Node = Node> = {
+export type D3ForceLayoutProps<NodeType extends GraphNode = GraphNode> = {
     simulation?: Simulation<NodeType>
 }
-export class D3ForceLayout<NodeType extends Node = Node> extends Layout<D3ForceLayoutProps<NodeType>>{
+export class D3ForceLayout<NodeType extends GraphNode = GraphNode> extends Layout<D3ForceLayoutProps<NodeType>>{
     ctx!: GraphChartContext<NodeType>
     props!: Required<D3ForceLayoutProps<NodeType>>
     constructor(props: D3ForceLayoutProps<NodeType>) {

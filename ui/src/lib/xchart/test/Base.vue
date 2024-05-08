@@ -3,7 +3,7 @@ import { XChart, Graph } from "@/lib/xchart";
 import { D3ForceLayout } from "@/lib/xchart/chart/graph/layout";
 import { GraphView } from "@/lib/xchart/chart/graph/view";
 import { onMounted, ref, shallowRef } from "vue";
-import type { Node, Edge } from "@/lib/xchart/chart/graph/Base";
+import type { GraphNode, GraphEdge } from "@/lib/xchart/chart/graph/Base";
 
 import { nodes, edges } from './share'
 import { CircleTexture } from "@/lib/xchart/texture";
@@ -15,7 +15,7 @@ const pixiContainer$ = ref<HTMLDivElement>()
 onMounted(() => {
 
     const app = new Application({  backgroundColor:0xffffff, width: pixiContainer$.value?.getBoundingClientRect().width, height: pixiContainer$.value?.getBoundingClientRect().height })
-    
+
     let viewport = new Viewport({
         screenHeight: app.view.height,
         screenWidth: app.view.width,

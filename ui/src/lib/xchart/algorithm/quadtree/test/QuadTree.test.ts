@@ -1,9 +1,9 @@
 import { it, describe, expect } from 'vitest'
-import {type Node} from '@/lib/xchart/chart/graph/Base'
+import {type GraphNode} from '@/lib/xchart/chart/graph/Base'
 import { QuadTree } from '../index';
 import {quadtree} from 'd3'
 function generateNodes(nodesNum = 50) {
-    const nodes: Node[] = []
+    const nodes: GraphNode[] = []
     for (let i = 0; i < nodesNum; i++) {
         const node = { props: {} } as any
         node.x = Math.random() * 800;
@@ -14,7 +14,7 @@ function generateNodes(nodesNum = 50) {
     }
     return nodes
 }
-function verifyTree(t1:QuadTree,t2:ReturnType<typeof quadtree<Node>>){
+function verifyTree(t1:QuadTree,t2:ReturnType<typeof quadtree<GraphNode>>){
     expect(t1.x0).toBe((t2 as any)._x0)
     expect(t1.x1).toBe((t2 as any)._x1)
     expect(t1.y0).toBe((t2 as any)._y0)
@@ -31,7 +31,7 @@ function verifyTree(t1:QuadTree,t2:ReturnType<typeof quadtree<Node>>){
     expect(res1.length).toEqual(res2.length)
     for(let i=0;i<res1.length;i++){
         const node1=res1[i],node2=res2[i]
-       
+
         expect(node1.x0).toEqual(node2.x0)
         expect(node1.x1).toEqual(node2.x1)
         expect(node1.y0).toEqual(node2.y0)
@@ -59,7 +59,7 @@ describe('QuadTree',()=>{
         verifyTree(t1,t2)
     })
     it.skip('init',()=>{
-        const t1=new QuadTree<Node>({nodes:[]}),t2=quadtree<Node>([],(node)=>node.x,(node)=>node.y)
+        const t1=new QuadTree<GraphNode>({nodes:[]}),t2=quadtree<GraphNode>([],(node)=>node.x,(node)=>node.y)
         verifyTree(t1,t2)
         t1.add({x:0,y:0,id:'0'} as any)
         t2.add({x:0,y:0,id:'0'} as any)
@@ -67,7 +67,7 @@ describe('QuadTree',()=>{
     })
     it.skip('add',()=>{
         const nodes=generateNodes(6)
-        const t1=new QuadTree<Node>({nodes:[]}),t2=quadtree<Node>([],(node)=>node.x,(node)=>node.y)
+        const t1=new QuadTree<GraphNode>({nodes:[]}),t2=quadtree<GraphNode>([],(node)=>node.x,(node)=>node.y)
         for(let i=0;i<nodes.length;i++){
             t1.add(nodes[i])
             t2.add(nodes[i])

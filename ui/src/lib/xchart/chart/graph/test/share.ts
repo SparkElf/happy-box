@@ -1,9 +1,9 @@
-import type { Node } from '@/lib/xchart/chart/graph/Base';
+import type { GraphNode } from '@/lib/xchart/chart/graph/Base';
 import * as d3 from 'd3'
 const width=600
 const height=600
 function generateNodes(nodesNum = 50) {
-    const nodes: Node[] = []
+    const nodes: GraphNode[] = []
     for (let i = 0; i < nodesNum; i++) {
         const node = {} as any
         node.x = Math.random() * width;
@@ -15,7 +15,7 @@ function generateNodes(nodesNum = 50) {
     }
     return nodes
 }
-function generateEdges(nodes: Node[]) {
+function generateEdges(nodes: GraphNode[]) {
     const edges = d3.range(nodes.length - 1).map(i => ({
         source: Math.floor(Math.sqrt(i)).toString(),
         target: (i + 1).toString(),

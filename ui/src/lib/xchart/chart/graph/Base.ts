@@ -3,7 +3,7 @@ import type { ChartContext } from "../../Base"
 import type { ITexture } from "../../texture/basic"
 
 
-export type Node<NodeTextureProps=any> = {
+export type GraphNode<NodeTextureProps=any> = {
     id:string
     index:number
     x:number
@@ -15,9 +15,10 @@ export type Node<NodeTextureProps=any> = {
     fixed:boolean
     xTexture?:ITexture<NodeTextureProps>//避免和pixi的texture冲突
     data:any
+    category:number//TODO:支持直接传string
 }&Sprite
 
-export type Edge<NodeType extends Node = Node> ={
+export type GraphEdge<NodeType extends GraphNode = GraphNode> ={
     id:string
     index:number
     source:string
@@ -31,7 +32,7 @@ export type Edge<NodeType extends Node = Node> ={
     data:any
 }&Graphics
 
-export type GraphChartContext<NodeType extends Node = Node > = ChartContext&{
+export type GraphChartContext<NodeType extends GraphNode = GraphNode > = ChartContext&{
     nodes:NodeType[],
-    edges:Edge<NodeType>[]
+    edges:GraphEdge<NodeType>[]
 }

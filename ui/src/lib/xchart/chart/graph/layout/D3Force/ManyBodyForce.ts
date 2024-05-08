@@ -1,9 +1,9 @@
 import { quadtree } from "d3-quadtree";
-import { type Node } from "../../Base";
+import { type GraphNode } from "../../Base";
 import { Force, jiggle, type ForceContext } from "./Force";
 import { QuadTree } from "@/lib/xchart/algorithm/quadtree";
 
-export class ManyBodyForce<NodeType extends Node= Node<any>> extends Force<NodeType>{
+export class ManyBodyForce<NodeType extends GraphNode= GraphNode<any>> extends Force<NodeType>{
   private strength: ((node: NodeType, nodes: NodeType[]) => number) = () => -30
   private strengths!: number[]
   minDistance = 1

@@ -1,12 +1,12 @@
 import { dispatch } from "d3-dispatch";
 import { timer } from "d3-timer";
 import type { Force, ForceContext } from "./Force";
-import type { Edge, GraphChartContext } from "../../Base";
-import type { Node } from '../../Base'
+import type { GraphEdge, GraphChartContext } from "../../Base";
+import type { GraphNode } from '../../Base'
 import type { D3ForceSimulationEventModel } from "../../event";
 import type { EventHandler, XchartEventMap } from "@/lib/xchart/event";
 export type D3ForceSimulationEventMap = XchartEventMap<D3ForceSimulationEventModel>
-export class Simulation<NodeType extends Node = Node>{
+export class Simulation<NodeType extends GraphNode = GraphNode>{
   ctx!: ForceContext<NodeType>
   alpha: number = 1;
   velocityDecay = 0.6
@@ -25,7 +25,7 @@ export class Simulation<NodeType extends Node = Node>{
     this.initNodes()
     return this
   }
-  setEdges(edges: Edge<NodeType>[]) {
+  setEdges(edges: GraphEdge<NodeType>[]) {
     this.ctx.edges = edges
     this.initEdges()
     return this

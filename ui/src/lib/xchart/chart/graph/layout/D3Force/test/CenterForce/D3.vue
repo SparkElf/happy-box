@@ -3,12 +3,12 @@ import { onMounted, ref, shallowRef } from 'vue';
 
 import { Viewport } from 'pixi-viewport'
 import * as d3 from 'd3'
-import type { Edge, Node } from '@/lib/xchart/chart/graph/Base';
+import type { GraphEdge, GraphNode } from '@/lib/xchart/chart/graph/Base';
 import { Application, Sprite, Graphics, SCALE_MODES } from 'pixi.js';
 const pixiContainer$ = ref<HTMLDivElement | null>()
 const props=defineProps<{
-    nodes:Node[]
-    edges:Edge<Node>[]
+    nodes:GraphNode[]
+    edges:GraphEdge<GraphNode>[]
 }>()
 const nodes=shallowRef(structuredClone(props.nodes))
 const edges=shallowRef(structuredClone(props.edges))
@@ -16,7 +16,7 @@ const edges=shallowRef(structuredClone(props.edges))
 let edgeDrawer: Graphics
 let viewport: Viewport
 let app: Application<HTMLCanvasElement>
-let simulation: d3.Simulation<Node, undefined>
+let simulation: d3.Simulation<GraphNode, undefined>
 
 function initPixi() {
     app = new Application<HTMLCanvasElement>({ backgroundColor: 0xFFFFFF, resizeTo: pixiContainer$.value!,antialias: true  });
@@ -42,7 +42,7 @@ function renderNodes() {
         circle.drawCircle(0, 0, node.xTexture!.props.radius)
         circle.endFill()
         const texture=app.renderer.generateTexture(circle,{scaleMode: SCALE_MODES.LINEAR,resolution:2})
-        let sprite = new Sprite(texture) as Node
+        let sprite = new Sprite(texture) as GraphNode
         sprite = Object.assign(sprite, node)
         sprite.eventMode = 'static';//正常交互 dynamic表示还接受mock事件
         sprite.cursor = 'pointer'; // cursor change

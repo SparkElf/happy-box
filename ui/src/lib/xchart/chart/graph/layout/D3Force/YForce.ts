@@ -1,15 +1,15 @@
 
 import { Force, type ForceContext } from "./Force";
-import { type Node } from "../../Base";
+import { type GraphNode } from "../../Base";
 export class ForceY<NodeTextureProps> extends Force{
 
     ctx!:ForceContext<any>
     strengths!: any[]
     yz!: any[]
     //力作用点的位置
-    y!:(node:Node<NodeTextureProps>)=>number
-    strength!:(node:Node<NodeTextureProps>)=>number
-    constructor(y?:(node:Node<NodeTextureProps>)=>number) {
+    y!:(node:GraphNode<NodeTextureProps>)=>number
+    strength!:(node:GraphNode<NodeTextureProps>)=>number
+    constructor(y?:(node:GraphNode<NodeTextureProps>)=>number) {
         super()
         this.setY(y??0)
         this.setStrength(0.1)
@@ -31,10 +31,10 @@ export class ForceY<NodeTextureProps> extends Force{
           node = this.ctx.nodes[i], node.vy += (this.yz[i] - node.y) * this.strengths[i] * alpha;
         }
     }
-    setY(y:number|((node:Node<NodeTextureProps>)=>number)){
+    setY(y:number|((node:GraphNode<NodeTextureProps>)=>number)){
         this.y=y instanceof Number?()=>y:y as any
     }
-    setStrength(strength:number|((node:Node<NodeTextureProps>)=>number)) {
+    setStrength(strength:number|((node:GraphNode<NodeTextureProps>)=>number)) {
         this.strength=strength instanceof Number?()=>strength:strength as any
     }
 

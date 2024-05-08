@@ -1,7 +1,7 @@
 import { Force, jiggle, type ForceContext } from "./Force";
-import { type Node } from "../../Base";
+import { type GraphNode } from "../../Base";
 import { QuadNodeOperator, QuadTree } from "@/lib/xchart/algorithm/quadtree";
-export class CollideForce<NodeType extends Node = Node<any>> extends Force<NodeType>{
+export class CollideForce<NodeType extends GraphNode = GraphNode<any>> extends Force<NodeType>{
   ctx!: ForceContext<NodeType>
   radii!: number[]
   radius: (node: NodeType, nodes: NodeType[]) => number = () => 1

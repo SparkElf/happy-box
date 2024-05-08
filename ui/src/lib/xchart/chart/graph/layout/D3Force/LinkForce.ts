@@ -1,16 +1,16 @@
 import { Force, jiggle, type ForceContext } from "./Force";
-import type { Node, Edge } from '@/lib/xchart/chart/graph/Base'
+import type { GraphNode, GraphEdge } from '@/lib/xchart/chart/graph/Base'
 
-export class LinkForce<NodeType extends Node<any> = Node<any>> extends Force<NodeType> {
+export class LinkForce<NodeType extends GraphNode<any> = GraphNode<any>> extends Force<NodeType> {
     ctx!: ForceContext<NodeType>;
 
     private strengths!: number[]
     private distances!: number[]
     private bias!: number[]
-    private strength!: (edge: Edge<NodeType>) => number
+    private strength!: (edge: GraphEdge<NodeType>) => number
     private isDefaultStrength=true
-    private distance!: (edge: Edge<NodeType>) => number
-    private iteration!: (edges: Edge<NodeType>[]) => number
+    private distance!: (edge: GraphEdge<NodeType>) => number
+    private iteration!: (edges: GraphEdge<NodeType>[]) => number
     constructor() {
         super()
     }
@@ -67,23 +67,23 @@ export class LinkForce<NodeType extends Node<any> = Node<any>> extends Force<Nod
         }
     }
     //如果增加连接的刚性，就意味着增加每个弹簧的紧密程度，使得整个网格更难变形或扭曲，更不受其他力的影响
-    setIteration(v: number | ((edges: Edge<any>[]) => number)) {
+    setIteration(v: number | ((edges: GraphEdge<any>[]) => number)) {
         if (typeof v === 'function') this.iteration = v
-        else if (typeof v === 'number') this.iteration = (edges: Edge<any>[]) => v
+        else if (typeof v === 'number') this.iteration = (edges: GraphEdge<any>[]) => v
         else throw new Error("iteration must be a number or a function")
         return this
     }
-    setStrength(v?: number | ((edge: Edge<any>) => number)) {
+    setStrength(v?: number | ((edge: GraphEdge<any>) => number)) {
         if(v==null)this.isDefaultStrength=true
         else this.isDefaultStrength=false
         if (typeof v === 'function') this.strength = v
-        else if (typeof v === 'number') this.strength = (edge: Edge<any>) => v
+        else if (typeof v === 'number') this.strength = (edge: GraphEdge<any>) => v
         else throw new Error("strength must be a number or a function")
         return this
     }
-    setDistance(v: number | ((edge: Edge<any>) => number)) {
+    setDistance(v: number | ((edge: GraphEdge<any>) => number)) {
         if (typeof v === 'function') this.distance = v
-        else if (typeof v === 'number') this.distance = (edge: Edge<any>) => v
+        else if (typeof v === 'number') this.distance = (edge: GraphEdge<any>) => v
         else throw new Error("distance must be a number or a function")
         return this
     }

@@ -9,8 +9,8 @@ export class XChart{
     eventCenter=new EventCenter()
     charts:any={}
     viewport!: Viewport
-    constructor(config:XchartConfig){
-        this.init(config)
+    constructor(config?:XchartConfig){
+        if(config)this.init(config)
     }
     on=this.eventCenter.on
     off=this.eventCenter.off
@@ -22,7 +22,7 @@ export class XChart{
                 antialias:true,
                 resolution:window.devicePixelRatio || 1,
                 autoDensity:true,
-                backgroundColor:0xffffff
+                backgroundColor:0xffffff,
 
             }as ApplicationOptions,config.pixiOptions||{})
         }
@@ -39,6 +39,7 @@ export class XChart{
             eventCenter:this.eventCenter,
             viewport:this.viewport
         }
+        //app.stage.sortableChildren=true
         app.stage.addChild(this.viewport)
 
         config.dom.appendChild(app.canvas as any)

@@ -1,16 +1,16 @@
 import { GraphView } from './view'
-import type { Node, Edge, GraphChartContext } from './Base'
+import type { GraphNode, GraphEdge, GraphChartContext } from './Base'
 import type { ChartContext, XChartContext } from '../../Base'
 import {  D3ForceLayout } from './layout'
 import { Chart } from '../Base'
 import type { ITexture } from '../../texture/basic'
 import { Container, Sprite,  Graphics } from 'pixi.js'
 
-export type GraphProps<NodeType extends Node<any> = Node<any>> = {
+export type GraphProps<NodeType extends GraphNode<any> = GraphNode<any>> = {
     layout: D3ForceLayout<NodeType>
     view: GraphView<NodeType>
 }
-export class Graph<NodeType extends Node<any> = Node<any>, Layout extends D3ForceLayout<NodeType> = D3ForceLayout<NodeType>, View extends GraphView<NodeType> = GraphView<NodeType> > extends Chart<Layout, View>{
+export class Graph<NodeType extends GraphNode<any> = GraphNode<any>, Layout extends D3ForceLayout<NodeType> = D3ForceLayout<NodeType>, View extends GraphView<NodeType> = GraphView<NodeType> > extends Chart<Layout, View>{
     layoutInstance: Layout
     viewInstance: View
     container: Container;
@@ -39,14 +39,14 @@ export class Graph<NodeType extends Node<any> = Node<any>, Layout extends D3Forc
         this.viewInstance.draw()
         this.layoutInstance.props.simulation.on('d3ForceSimulationTick',()=>{
             //console.log('tick')
-            console.log(this.ctx.nodes[0].x,'node')
+            //console.log(this.ctx.nodes[0].x,'node')
             this.viewInstance.redraw()
         })
         return this
     }
     setData(data: {
         nodes?: NodeType[],
-        edges?: Edge<NodeType>[]
+        edges?: GraphEdge<NodeType>[]
     }) {
         const {nodes,edges}=data
         if(nodes)

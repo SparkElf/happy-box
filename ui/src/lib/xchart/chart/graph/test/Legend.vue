@@ -12,6 +12,7 @@ import carImg from '@/assets/icon/car.png'
 const pixiContainer$ = ref<HTMLDivElement>()
 const app = shallowRef<XChart>()
 
+console.log(Texture.from(carImg))
 const graphChart = shallowRef(new Graph({
     layout: new D3ForceLayout({}),
     view: new GraphView({

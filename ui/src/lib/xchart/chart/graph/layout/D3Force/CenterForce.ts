@@ -1,9 +1,9 @@
-import { type Node } from "../../Base";
+import { type GraphNode } from "../../Base";
 import { Force, type ForceContext } from "./Force";
 /**
  * 中心力均匀地平移节点，以便所有节点的平均位置（如果所有节点具有相同的权重，则为质心）位于给定位置 ⟨x,y⟩。该力会修改每个应用程序上节点的位置；它不会修改速度，因为这样做通常会导致节点超调并围绕所需中心振荡。该力有助于将节点保持在视口的中心，并且与位置力不同，它不会扭曲它们的相对位置。
  */
-export class CenterForce<NodeType extends Node<any> = Node<any>> extends Force<NodeType>{
+export class CenterForce<NodeType extends GraphNode<any> = GraphNode<any>> extends Force<NodeType>{
   ctx!: ForceContext<NodeType>;
   x=0
   y= 0

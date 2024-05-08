@@ -1,4 +1,4 @@
-import type {Node, Edge } from "../Base"
+import type {GraphNode, GraphEdge } from "../Base"
 import type { Simulation } from "../layout/D3Force/Simulation"
 
 export type D3ForceSimulationTickEventModel={
@@ -13,8 +13,8 @@ export type D3ForceSimulationEventModel=D3ForceSimulationTickEventModel|D3ForceS
 export type UpdateGraphDataEventModel={
     type:'updateGraphDataEvent'
     data:{
-        nodes?:Node[]
-        edges?:Edge[]
+        nodes?:GraphNode[]
+        edges?:GraphEdge[]
     }
 }
 export type GraphEventModels=D3ForceSimulationEventModel|UpdateGraphDataEventModel
