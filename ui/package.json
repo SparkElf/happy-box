@@ -16,6 +16,7 @@
     "@antv/g6": "4.8.24",
     "@vueuse/core": "10.9.0",
     "@vueuse/motion": "2.1.0",
+    "axios": "^1.6.8",
     "d3": "7.9.0",
     "echarts": "5.5.0",
     "element-plus": "^2.7.2",
@@ -43,5 +44,10 @@
     "vite": "^5.2.11",
     "vitest": "1.6.0",
     "vue-tsc": "2.0.16"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
