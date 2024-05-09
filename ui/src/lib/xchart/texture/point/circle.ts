@@ -27,7 +27,7 @@ export class CircleTexture extends ITexture<CircleTextureProps>{
     draw(): Texture {
         //console.log(this.props.img)
         const r=this.props.radius!
-        const circle = new Graphics().circle(0,0,r).fill(0x000000)
+        const circle = new Graphics().circle(0,0,r)
 
         if(this.props.border)circle.stroke(this.props.border!)
         if(this.props.img)circle.texture(this.props.img,0xffffff,-r,-r,2*r,2*r)

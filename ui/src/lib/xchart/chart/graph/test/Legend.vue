@@ -20,7 +20,7 @@ const app = shallowRef<XChart>()
 const graphChart = shallowRef(new Graph({
     layout: new D3ForceLayout({}),
     view: new GraphView({
-        nodeTexture:new CircleTexture({img:await Assets.load(carImg),border:{width:20,color:0x000000}})
+        nodeTexture:new CircleTexture({img:await Assets.load(carImg)})
     })
 }))
 const {nodes,edges,selectedLegends}=useLegendGraph(originNodes,originEdges)
