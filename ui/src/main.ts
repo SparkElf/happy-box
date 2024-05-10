@@ -13,7 +13,7 @@ app.use(router)
 
 
 async function enableMocking() {
-    if (process.env.NODE_ENV !== 'development') {
+    if (import.meta.env.MODE !== 'mock') {
         return
     }
 
@@ -21,7 +21,9 @@ async function enableMocking() {
 
     // `worker.start()` returns a Promise that resolves
     // once the Service Worker is up and ready to intercept requests.
-    return worker.start()
+
+    worker.start()
+    console.log('start mock')
 }
 
 enableMocking().then(() => {

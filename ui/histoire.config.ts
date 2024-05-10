@@ -7,7 +7,7 @@ export default defineConfig({
     HstVue(),
   ],
   vite:{
-    mode:'development',
+    mode:'mock',
     build:{
       sourcemap:true
     }

@@ -10,7 +10,9 @@
     "build-only": "vite build",
     "story:dev": "histoire dev",
     "story:build": "histoire build",
-    "story:preview": "histoire preview"
+    "story:preview": "histoire preview",
+    "story:mock":"",
+    "mock": "vite dev --mode mock"
   },
   "dependencies": {
     "@antv/g6": "4.8.24",
