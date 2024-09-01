@@ -6,10 +6,4 @@ export default defineConfig({
   plugins: [
     HstVue(),
   ],
-  vite:{
-    mode:'mock',
-    build:{
-      sourcemap:true
-    }
-  }
 })

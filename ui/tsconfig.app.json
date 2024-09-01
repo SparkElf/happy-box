@@ -1,18 +1,12 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/histoire.setup.ts","src/**/*.json", "type.d.ts"],
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "src/histoire.setup.ts","src/**/*.json", "type.d.ts","utils.d.ts"],
   "exclude": ["src/**/__tests__/*"],
   "compilerOptions": {
-    "moduleResolution": "bundler",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "jsx": "preserve",
-    "target": "ESNext",
-    "allowJs": true,
     "composite": true,
-    "module":"esnext",
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+
     "baseUrl": ".",
-    "lib": ["ESNext","DOM"],
     "paths": {
       "@/*": ["./src/*"]
     }

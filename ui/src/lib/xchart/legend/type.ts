@@ -1,6 +1,6 @@
-export type LegendDataItem={
+export type LegendPropItem={
     name:string;
     img?:string;
-    symbol?:'none'|'circle'|'rect'|'square'
+   
 }
-export type LegendData=LegendDataItem[]
+export type LegendProp=LegendPropItem[]

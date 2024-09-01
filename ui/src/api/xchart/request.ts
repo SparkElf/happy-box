@@ -89,7 +89,7 @@ service.interceptors.response.use(
             if (error.response.status === 404) {
 
             }
-            error.response.data.msg = map[error.response.status as keyof map] || '连接服务器失败'
+            error.response.data.msg = map[error.response.status] || '连接服务器失败'
         }
         return Promise.reject((error.response && error.response.data) || { msg: '网络出现问题，请稍后再试' }) // 返回接口返回的错误信息
 
@@ -99,7 +99,7 @@ service.interceptors.response.use(
 
 
 
-export function request<Type extends 'single'|'list'|'ajax',ResponseData=any>(config:AxiosRequestConfig){
-  return service<any,Type extends 'single'?SingleResponse<ResponseData>: Type extends 'list'?PageResponse<ResponseData>:AjaxResponse<ResponseData>,any>(config)
+export function request<Type extends 'single'|'page',ResponseData=any>(config:AxiosRequestConfig){
+  return service<any,Type extends 'single'?SingleResponse<ResponseData>: Type extends 'page'?PageResponse<ResponseData>:never,any>(config)
 }
 export default request

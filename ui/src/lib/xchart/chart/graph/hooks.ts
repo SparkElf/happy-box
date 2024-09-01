@@ -1,6 +1,7 @@
 import { ref, shallowRef, type Ref } from "vue";
 import type { GraphEdge, GraphNode } from "./Base";
 import { watch } from "vue";
+import type { LegendProp } from "../../legend/type";
 
 export function useGraph(originNodes:Ref<GraphNode[]>,originEdges:Ref<GraphEdge[]>){
     const nodes = shallowRef<GraphNode[]>(originNodes.value);
