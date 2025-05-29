@@ -51,7 +51,8 @@ async function sendMsg() {
         loading.value = false; // 重置加载状态
         return;
     }
-    messages.value = [...messages.value, { role: 'user', content: inputValue.value }];
+    currentChatId.value = res.data.chatId; // 更新当前聊天 ID
+    messages.value = [...messages.value, res.data.message];
 
     console.log('发送结果:', res);
     console.log('发送消息:', inputValue.value);

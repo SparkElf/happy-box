@@ -8,7 +8,7 @@ const request = axios.create({
   },
 });
 function getToken() {
-  return ""
+  return "abcdefghijklmnopqrstuvwxyz"; // Replace with actual token retrieval logic
 }
 export async function sendMessageApi({ messages,chatId,modelName } :{messages:any[],chatId:number|null,modelName:string}) {
   return request.post("/completions", { messages,chatId,modelName });

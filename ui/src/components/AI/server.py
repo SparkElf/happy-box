@@ -29,6 +29,19 @@ def getUserInfo(token):
 
 def get_db_connection():
     return pymysql.connect(**DB_CONFIG)
+
+def underscore_to_camel(word):
+    parts = word.split('_')
+    return parts[0] + ''.join(x.title() for x in parts[1:])
+
+def dict_keys_to_camel(d):
+    if isinstance(d, dict):
+        return {underscore_to_camel(k): dict_keys_to_camel(v) for k, v in d.items()}
+    elif isinstance(d, list):
+        return [dict_keys_to_camel(i) for i in d]
+    else:
+        return d
+
 def queryDB(sql, params=None):
     try:
         conn = get_db_connection()
@@ -36,10 +49,12 @@ def queryDB(sql, params=None):
             cursor.execute(sql, params)
             result = cursor.fetchall()
         conn.close()
-        return result
+        # 新增：自动转驼峰
+        return dict_keys_to_camel(result)
     except Exception as e:
         print(f"Database query error: {e}")
         return None
+
 def executeDB(sql, params=None, fetch=False):
     try:
         conn = get_db_connection()
@@ -53,26 +68,20 @@ def executeDB(sql, params=None, fetch=False):
             return result
     except Exception as e:
         print(f"Database execute error: {e}")
-        return False
+        raise Exception("数据库操作失败")
 @app.route('/getAiChatHistoryList', methods=['post'])
 def getAiChatHistoryListController():
     data = request.get_json()
     if not data:
         return jsonify({'error': '未收到请求参数'}), 400
     try:
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            sql = f"SELECT * FROM aichat where user_id = %s ORDER BY update_time DESC "
-            cursor.execute(sql, (int(data['user_id']),))
-            result = cursor.fetchall()
-        conn.close()
-        return jsonify(result)
+        return jsonify(queryDB("SELECT * FROM aichat where user_id = %s ORDER BY update_time DESC ", (int(data['user_id']),)))
     except Exception as e:
         return jsonify({'error': '未知错误,请联系管理员'}), 500
 
 import requests
 def modelService(model_name,messages):
-    return {'message':"模型消息mock",'pipelines':[{'sql': 'SELECT * FROM users', 'status': 'not-started', 'name': '查询用户信息'}]}
+    return {'message':{'role':'assistant','content':'模型消息mock','type':'text'},'pipelines':[{'sql': 'SELECT * FROM users', 'status': 'not-started', 'name': '查询用户信息'}]}
     if model_name == 'chat.qwen.aiqwen-Qwen3-235B-A22B':
         model_info=queryDB("SELECT * FROM aichat_model WHERE model_name = 'chat.qwen.aiqwen-Qwen3-235B-A22B' limit 1")
         if not model_info:
@@ -92,11 +101,9 @@ def chatController():
     print(data)
     if not data:
         return jsonify({'error': 'No JSON data received'}), 400
-    # 处理接收到的数据
-    # 例如，假设我们只回显收到的数据
-    messages = data.get('messages', [])
-    chat_id = data.get('chat_id', None)
-    token = data.get('token', None)
+    token = request.headers.get('Authorization', None)
+    messages = data.get('messages', None)
+    chat_id = data.get('chatId', None)
     if not messages or not isinstance(messages, list):
         return jsonify({'error': '空对话'}), 400
     if not token:
@@ -104,25 +111,46 @@ def chatController():
     user_info = getUserInfo(token)
     if not user_info:
         return jsonify({'error': '无效的token'}), 401
-    if not chat_id:
-        model_name = data['model_name']
-        title = getChatTitle(messages)
-        if not model_name:
-            return jsonify({'error': '缺少模型名称'}), 400
-        chat_id=executeDB("INSERT INTO aichat (user_id, model_name, title) VALUES (%s, %s, %s)", (user_info['user_id'], model_name, title))
-    else:
-        model_name = queryDB("SELECT model_name FROM aichat WHERE chat_id = %s limit 1", (chat_id,))[0]['model_name']
-    if not model_name:
-        return jsonify({'error': 'chat_id不合法'}), 400
-    message=messages[-1]
-    message_id=executeDB("INSERT INTO aichat_message (chat_id, user_id, query_content, type) VALUES (%s, %s, %s, %s)",(chat_id, user_info['user_id'], message['content'], message.get('type', 'text')))
-    response = modelService(model_name, messages)
-    executeDB("UPDATE aichat_message SET response_content = %s WHERE message_id = %s", (response, message_id))
-    pipelines = response['pipelines']
-    for pipeline in pipelines:
-        executeDB("INSERT INTO aichat_pipeline (message_id, sql, status, name) VALUES (%s, %s, %s, %s)",
-                   (message_id, pipeline['sql'], pipeline['status'], pipeline['name']))
-    return jsonify({'message': response['message'], "sql": pipelines, "chatId": chat_id})
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            if not chat_id:
+                model_name = data['modelName']
+                title = getChatTitle(messages)
+                if not model_name:
+                    return jsonify({'error': '缺少模型名称'}), 400
+                cursor.execute("INSERT INTO aichat (user_id, model_name, title) VALUES (%s, %s, %s)", (user_info['user_id'], model_name, title))
+                chat_id = cursor.lastrowid
+            else:
+                cursor.execute("SELECT model_name FROM aichat WHERE chat_id = %s limit 1", (chat_id,))
+                row = cursor.fetchone()
+                if not row:
+                    return jsonify({'error': 'chat_id不合法'}), 400
+                model_name = row['model_name']
+            message = messages[-1]
+            cursor.execute("INSERT INTO aichat_message (chat_id , query_content, query_type) VALUES (%s,  %s, %s)",
+                           (chat_id, message['content'], message.get('type', 'text')))
+            message_id = cursor.lastrowid
+            response = modelService(model_name, messages)
+            cursor.execute("UPDATE aichat_message SET response = %s,response_type = %s WHERE message_id = %s", (response['message']['content'], 'text',message_id))
+            pipelines = response['pipelines']
+            for pipeline in pipelines:
+                print(f"Pipeline: {pipeline}")
+
+                cursor.execute("INSERT INTO aichat_pipeline (message_id, content, status, name) VALUES (%s, %s, %s, %s)",
+                               (message_id, pipeline['sql'], pipeline['status'], pipeline['name']))
+            conn.commit()
+        return jsonify({'message': response['message'], "sql": pipelines, "chatId": chat_id})
+    except Exception as e:
+        print(f"Error: {e}")
+        if conn:
+            conn.rollback()
+        return jsonify({'error': '服务异常，请联系管理员', 'detail': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/getModelList', methods=['POST'])
 def getModelListController():
