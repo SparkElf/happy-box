@@ -10,7 +10,7 @@ const request = axios.create({
 function getToken() {
   return ""
 }
-export async function sendMessageApi({ messages,chatId,modelName } :{messages:any[],chatId:number,modelName:string}) {
+export async function sendMessageApi({ messages,chatId,modelName } :{messages:any[],chatId:number|null,modelName:string}) {
   return request.post("/completions", { messages,chatId,modelName });
 }
 
