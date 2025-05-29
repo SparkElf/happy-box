@@ -1,18 +1,10 @@
-
 <template>
-  <div class="HappyBox App">
-    <LogicFlowZoom/>
+  <div id="app">
+    <AIChat />
   </div>
 </template>
+
 <script setup lang="ts">
-import LogicFlowZoom from '@/views/LogicFlowZoom/index.vue'
+import AIChat from '@/components/AI/index.vue'
+import 'element-plus/dist/index.css'
 </script>
-
-<style lang="scss" scoped>
-//scoped做App级别的样式隔离
-@import "@/themes/GreenDark.scss";
-
-.LoginBox{
-
-}
-</style>

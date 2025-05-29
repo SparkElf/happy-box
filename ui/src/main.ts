@@ -2,7 +2,8 @@
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-
+import 'element-plus/dist/index.css'
+import 'ant-design-vue/dist/reset.css';
 import App from './App.vue'
 import router from './router'
 
