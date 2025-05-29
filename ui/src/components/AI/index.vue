@@ -31,8 +31,10 @@ const inputValue = ref('');
 const loading = ref(false);
 const messages = ref([] as any[]);
 const currentChatId = ref(null)
+const modelName = ref("qwen72")
 provide('messages', messages)
 provide('currentChatId', currentChatId);
+provide('modelName', modelName);
 async function sendMsg() {
     if (inputValue.value.trim() === '') {
         return;
@@ -40,7 +42,7 @@ async function sendMsg() {
     loading.value = true; // 设置加载状态
     messages.value = [...messages.value, { role: 'user', content: inputValue.value,type:'text' }];
     // 这里可以添加发送消息的逻辑
-    const res = await sendMessageApi({ messages:messages.value,chatId:currentChatId.value,modelName:'qwen72' });
+    const res = await sendMessageApi({ messages:messages.value,chatId:currentChatId.value,modelName:modelName.value });
     if (res.status !== 200) {
         messageApi.error('发送消息失败:');
         loading.value = false; // 重置加载状态
