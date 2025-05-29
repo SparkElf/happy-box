@@ -93,10 +93,12 @@ def chatController():
         return jsonify({'error': 'No JSON data received'}), 400
     # 处理接收到的数据
     # 例如，假设我们只回显收到的数据
-    messages = data['messages']
-    type = data['type']
-    chat_id = data['chatId']
-    token = data['token']
+    messages = data.get('messages', [])
+    type = data.get('type', 'text')
+    chat_id = data.get('chat_id', None)
+    token = data.get('token', None)
+    if not messages or not isinstance(messages, list):
+        return jsonify({'error': '空对话'}), 400
     if not token:
         return jsonify({'error': '缺少token参数'}), 400
     user_info = getUserInfo(token)
