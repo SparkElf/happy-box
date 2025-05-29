@@ -1,5 +1,5 @@
 <template>
-    <a-layout-sider v-model:collapsed="collapsed" collapsible theme="light" style="">
+    <a-layout-sider v-model:collapsed="collapsed" collapsible theme="light" style="padding-bottom: 0;">
         <div class="header" style="margin-bottom: 20px;">
             <a-tooltip>
                 <template #title v-if="!collapsed" placement="topRight">折叠侧边栏</template>
@@ -10,10 +10,9 @@
         </div>
         <!-- 搜索输入框 -->
         <div v-if="!collapsed" class="SearchBox">
-            <a-input v-model:value="searchText" placeholder="搜索历史记录"
-                allow-clear >
+            <a-input v-model:value="searchText" placeholder="搜索历史记录" allow-clear>
                 <template #suffix>
-                    <SearchIcon style="color: #999;cursor: pointer;"  @click="onSearch"/>
+                    <SearchIcon style="color: #999;cursor: pointer;" @click="onSearch" />
                 </template>
             </a-input>
         </div>
@@ -67,7 +66,7 @@ onMounted(async () => {
     }
 });
 </script>
-<style scoped scss>
+<style scoped lang="scss">
 #components-layout-demo-side .logo {
     height: 32px;
     margin: 16px;
@@ -88,12 +87,23 @@ onMounted(async () => {
 }
 
 ::v-deep(.ant-layout-sider-children) {
-    background-color: v-bind("collapsed ? '#fff' : '#f4f5fb'");
+    background-color: v-bind("collapsed ? '#fff' : '#f1f6fe'");
     padding: 10px;
 
 }
 
 
+.SearchBox {
+    ::v-deep(.ant-input-affix-wrapper) {
+        border: 1px solid #dce8fc !important;
+        outline: none;
+        background-color: transparent;
+
+        input {
+            background-color: transparent;
+        }
+    }
 
 
+}
 </style>
