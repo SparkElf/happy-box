@@ -18,7 +18,7 @@
         </div>
         <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed">
             <template v-for="item in filteredChatHistoryList" :key="item.id">
-                <a-menu-item>
+                <a-menu-item @click="currentChatId = item.chatId">
                     <span>{{ item.title || '无标题' }}</span>
                 </a-menu-item>
             </template>
@@ -29,7 +29,7 @@
 import {
     AlignLeftOutlined
 } from '@ant-design/icons-vue';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, inject } from 'vue';
 import { getChatHistoryListApi } from './aichat_api';
 import SearchIcon from './SearchIcon.vue';
 const collapsed = ref<boolean>(false);
@@ -37,6 +37,7 @@ const selectedKeys = ref<string[]>([]);
 
 const chatHistoryList = ref<any[]>([]);
 const searchText = ref<string>('');
+const currentChatId = inject('currentChatId', ref(null));
 
 // 搜索过滤
 const filteredChatHistoryList = computed(() => {
@@ -57,6 +58,7 @@ onMounted(async () => {
         const res = await getChatHistoryListApi({ userId });
         if (Array.isArray(res.data)) {
             chatHistoryList.value = res.data;
+            console.log('聊天记录列表:', chatHistoryList.value);
             if (chatHistoryList.value.length > 0) {
                 selectedKeys.value = [String(chatHistoryList.value[0].id)];
             }
