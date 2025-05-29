@@ -71,7 +71,7 @@ def getAiChatHistoryListController():
         return jsonify({'error': '未知错误,请联系管理员'}), 500
 
 import requests
-def modelService(model_name,messages,type):
+def modelService(model_name,messages):
     return {'message':"模型消息mock",'pipelines':[{'sql': 'SELECT * FROM users', 'status': 'not-started', 'name': '查询用户信息'}]}
     if model_name == 'chat.qwen.aiqwen-Qwen3-235B-A22B':
         model_info=queryDB("SELECT * FROM aichat_model WHERE model_name = 'chat.qwen.aiqwen-Qwen3-235B-A22B' limit 1")
@@ -89,12 +89,12 @@ def getChatTitle(messages):
 @app.route('/completions', methods=['POST'])
 def chatController():
     data = request.get_json()
+    print(data)
     if not data:
         return jsonify({'error': 'No JSON data received'}), 400
     # 处理接收到的数据
     # 例如，假设我们只回显收到的数据
     messages = data.get('messages', [])
-    type = data.get('type', 'text')
     chat_id = data.get('chat_id', None)
     token = data.get('token', None)
     if not messages or not isinstance(messages, list):
@@ -114,8 +114,9 @@ def chatController():
         model_name = queryDB("SELECT model_name FROM aichat WHERE chat_id = %s limit 1", (chat_id,))[0]['model_name']
     if not model_name:
         return jsonify({'error': 'chat_id不合法'}), 400
-    message_id=executeDB("INSERT INTO aichat_message (chat_id, user_id, query_content, type) VALUES (%s, %s, %s, %s)",)
-    response = modelService(model_name, messages, type)
+    message=messages[-1]
+    message_id=executeDB("INSERT INTO aichat_message (chat_id, user_id, query_content, type) VALUES (%s, %s, %s, %s)",(chat_id, user_info['user_id'], message['content'], message.get('type', 'text')))
+    response = modelService(model_name, messages)
     executeDB("UPDATE aichat_message SET response_content = %s WHERE message_id = %s", (response, message_id))
     pipelines = response['pipelines']
     for pipeline in pipelines:

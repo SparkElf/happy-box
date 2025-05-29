@@ -10,8 +10,8 @@ const request = axios.create({
 function getToken() {
   return ""
 }
-export async function sendMessageApi({ message, type }) {
-  return request.post("/completions", { message, type });
+export async function sendMessageApi({ messages,chatId,modelName } :{messages:any[],chatId:number,modelName:string}) {
+  return request.post("/completions", { messages,chatId,modelName });
 }
 
 export async function getChatHistoryListApi({ userId }) {

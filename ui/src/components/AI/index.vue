@@ -7,18 +7,13 @@
                 <a-layout-content style="margin: 0 0px">
                     <ChatArea />
                 </a-layout-content>
-
                 <div class="InputBox">
-                    <a-textarea  v-model:value="inputValue" placeholder="问我任何消息" :rows="4">
-
+                    <a-textarea v-model:value="inputValue" placeholder="问我任何消息" :rows="4">
                     </a-textarea>
                     <div class="ButtonGroup">
                         <SendIcon @click="sendMsg" />
                     </div>
-
                 </div>
-
-
             </a-layout>
         </a-layout>
     </div>
@@ -43,8 +38,9 @@ async function sendMsg() {
         return;
     }
     loading.value = true; // 设置加载状态
+    messages.value = [...messages.value, { role: 'user', content: inputValue.value,type:'text' }];
     // 这里可以添加发送消息的逻辑
-    const res = await sendMessageApi({ message: inputValue.value, type: 'text' });
+    const res = await sendMessageApi({ messages:messages.value,chatId:currentChatId.value,modelName:'qwen72' });
     if (res.status !== 200) {
         messageApi.error('发送消息失败:');
         loading.value = false; // 重置加载状态
@@ -92,12 +88,13 @@ async function sendMsg() {
         border: none;
         background-color: transparent;
         box-shadow: none;
-        color: rgb(55, 65, 81,.5) !important;
+        color: rgb(55, 65, 81, .5) !important;
         font-size: 16px;
         overflow-y: auto;
+
         &::placeholder {
             font-size: 16px;
-            color: rgb(55, 65, 81,.5) !important;
+            color: rgb(55, 65, 81, .5) !important;
         }
     }
 
