@@ -16,8 +16,8 @@
                 </template>
             </a-input>
         </div>
-        <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed">
-            <template v-for="item in filteredChatHistoryList" :key="item.id">
+        <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed" style="background-color: transparent; border: none;">
+            <template v-for="item in filteredChatHistoryList" :key="item.chatId">
                 <a-menu-item @click="currentChatId = item.chatId">
                     <span>{{ item.title || '无标题' }}</span>
                 </a-menu-item>
@@ -60,7 +60,7 @@ onMounted(async () => {
             chatHistoryList.value = res.data;
             console.log('聊天记录列表:', chatHistoryList.value);
             if (chatHistoryList.value.length > 0) {
-                selectedKeys.value = [String(chatHistoryList.value[0].id)];
+                //selectedKeys.value = [String(chatHistoryList.value[0].id)];
             }
         }
     } catch (e) {
