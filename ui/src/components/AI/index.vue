@@ -3,7 +3,9 @@
         <a-layout style="min-height: 100vh">
             <SideBar />
             <a-layout>
-                <a-layout-header style="background: #fff; padding: 0" />
+              <a-layout-header style="background: #fff; padding: 0" >
+                <HeaderArea></HeaderArea>
+              </a-layout-header>
                 <a-layout-content style="margin: 0 0px">
                     <ChatArea />
                 </a-layout-content>
@@ -25,6 +27,7 @@ import { provide, ref } from 'vue';
 import { sendMessageApi } from './aichat_api'
 import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
+import HeaderArea from "@/components/AI/HeaderArea.vue";
 const [messageApi, contextHolder] = message.useMessage();
 
 const inputValue = ref('');
