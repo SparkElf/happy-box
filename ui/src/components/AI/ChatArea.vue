@@ -49,5 +49,16 @@ watch(messages, (newMessages) => {
     padding-left: $row-padding;
     max-height: 80vh;
     overflow-y: auto;
+    &::-webkit-scrollbar {
+      height: .4rem;
+      width: .4rem;
+    }
+    &::-webkit-scrollbar-thumb {
+      --tw-border-opacity: 1;
+      background-color: rgba(236,236,236,.8);
+      border-color: rgba(255,255,255,var(--tw-border-opacity));
+      border-radius: 9999px;
+      border-width: 1px;
+    }
 }
 </style>
