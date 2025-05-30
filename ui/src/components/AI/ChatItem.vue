@@ -1,13 +1,13 @@
 <template>
-    <div class="ChatItem" :class="{ 'UserRole': role === 'user', 'BotRole': role === 'bot' }">
+    <div class="ChatItem" :class="{ 'UserRole': role === 'user', 'BotRole': role === 'assistant' }">
         <div class="Avatar">
             <img :src="avatar || AvatarImg" alt="Avatar" />
             <div v-if="role === 'user'" class="UserName">{{ userName }}</div>
             <div v-else class="UserName">机器人</div>
-            <div v-if="role === 'bot'" class="BotIcon">🤖</div>
-            <el-tag round v-if="role === 'bot'" class="ModelName" style="margin-left: 10px">{{ modelName }}</el-tag>
+            <div v-if="role === 'assistant'" class="BotIcon">🤖</div>
+            <el-tag round v-if="role === 'assistant'" class="ModelName" style="margin-left: 10px">{{ modelName }}</el-tag>
         </div>
-        <div class="Pipeline" v-if="role === 'bot'">
+        <div class="Pipeline" v-if="role === 'assistant'">
             <a-collapse v-model:activeKey="activeKey" :bordered="false" style="background: rgb(255, 255, 255)">
                 <template #expandIcon="{ isActive }">
                     <div class="StepsHeader" style="display:flex;align-items: center;">
@@ -39,7 +39,7 @@ import { marked } from 'marked'; // 引入 marked 库
 import type { Step } from './type';
 import { CaretRightOutlined } from '@ant-design/icons-vue';
 const props = withDefaults(defineProps<{
-    role?: 'user' | 'bot';
+    role?: 'user' | 'assistant';
     content?: string;
     time?: string;
     userName?: string;

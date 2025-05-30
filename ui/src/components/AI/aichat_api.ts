@@ -10,8 +10,8 @@ const request = axios.create({
 function getToken() {
   return "abcdefghijklmnopqrstuvwxyz"; // Replace with actual token retrieval logic
 }
-export async function sendMessageApi({ messages,chatId,modelName } :{messages:any[],chatId:number|null,modelName:string}) {
-  return request.post("/completions", { messages,chatId,modelName });
+export async function sendMessageApi({ messages, chatId, modelName }: { messages: any[], chatId: number | null, modelName: string }) {
+  return request.post("/completions", { messages, chatId, modelName });
 }
 
 export async function getChatHistoryListApi({ userId }) {
@@ -24,4 +24,8 @@ export async function getModelListApi() {
 
 export async function getModelByIdApi({ modelId }) {
   return request.post("/getModelById", { model_id: modelId });
+}
+
+export async function getAiChatBaseInfoApi({ chatId }) {
+  return request.post("/getAiChatBaseInfo", { chatId: chatId });
 }

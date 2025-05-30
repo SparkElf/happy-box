@@ -7,6 +7,7 @@ import uuid  # 新增
 #     "role": "user",  # 或 "assistant"
 #     "content": "用户输入的内容"
 #     "type": "text"  # 或 "image", "video" 等
+#     "messageId": "唯一消息ID"  # 可选，若不提供则自动生成
 # }
 
 app = Flask(__name__)
@@ -69,13 +70,29 @@ def executeDB(sql, params=None, fetch=False):
     except Exception as e:
         print(f"Database execute error: {e}")
         raise Exception("数据库操作失败")
+@app.route('/getAiChatBaseInfo', methods=['POST'])
+def getAiChatBaseInfoController():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': '未收到请求参数'}), 400
+    try:
+        chat_id = int(data['chatId'])
+        base_info = queryDB("SELECT * FROM aichat WHERE chat_id = %s limit 1 ", (chat_id,))[0]
+        messagges = queryDB("SELECT * FROM aichat_message WHERE chat_id = %s ORDER BY create_time DESC", (chat_id,))
+        base_info['messages'] = messagges
+        if not messagges:
+            return jsonify({'error': '未找到对应的聊天记录'}), 404
+        return jsonify(base_info)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': '未知错误,请联系管理员'}), 500
 @app.route('/getAiChatHistoryList', methods=['post'])
 def getAiChatHistoryListController():
     data = request.get_json()
     if not data:
         return jsonify({'error': '未收到请求参数'}), 400
     try:
-        return jsonify(queryDB("SELECT * FROM aichat where user_id = %s ORDER BY update_time DESC ", (int(data['user_id']),)))
+        queries = queryDB("SELECT * FROM aichat where user_id = %s ORDER BY update_time DESC ", (int(data['user_id']),))
     except Exception as e:
         return jsonify({'error': '未知错误,请联系管理员'}), 500
 
@@ -130,17 +147,17 @@ def chatController():
                     return jsonify({'error': 'chat_id不合法'}), 400
                 model_name = row['model_name']
             message = messages[-1]
-            cursor.execute("INSERT INTO aichat_message (chat_id , query_content, query_type) VALUES (%s,  %s, %s)",
+            cursor.execute("INSERT INTO aichat_query (chat_id , query, type) VALUES (%s,  %s, %s)",
                            (chat_id, message['content'], message.get('type', 'text')))
-            message_id = cursor.lastrowid
+            query_id = cursor.lastrowid
             response = modelService(model_name, messages)
-            cursor.execute("UPDATE aichat_message SET response = %s,response_type = %s WHERE message_id = %s", (response['message']['content'], 'text',message_id))
+            response_id =cursor.execute("INSERT INTO aichat_response (chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
+                           (chat_id, query_id, response['message']['content'], response['message'].get('type', 'text'), model_name))
             pipelines = response['pipelines']
             for pipeline in pipelines:
                 print(f"Pipeline: {pipeline}")
-
-                cursor.execute("INSERT INTO aichat_pipeline (message_id, content, status, name) VALUES (%s, %s, %s, %s)",
-                               (message_id, pipeline['sql'], pipeline['status'], pipeline['name']))
+                cursor.execute("INSERT INTO aichat_pipeline (response_id, content, status, name) VALUES (%s, %s, %s, %s)",
+                               (response_id, pipeline['sql'], pipeline['status'], pipeline['name']))
             conn.commit()
         return jsonify({'message': response['message'], "sql": pipelines, "chatId": chat_id})
     except Exception as e:

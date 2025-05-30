@@ -24,7 +24,7 @@
 import SideBar from './SideBar.vue';
 import ChatArea from './ChatArea.vue';
 import { provide, ref } from 'vue';
-import { sendMessageApi } from './aichat_api'
+import { sendMessageApi,getAiChatBaseInfoApi } from './aichat_api'
 import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
 import HeaderArea from "@/components/AI/HeaderArea.vue";
