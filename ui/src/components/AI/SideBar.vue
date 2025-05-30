@@ -16,7 +16,8 @@
                 </template>
             </a-input>
         </div>
-        <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed" style="background-color: transparent; border: none;">
+        <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed"
+            style="background-color: transparent; border: none;">
             <template v-for="item in filteredChatHistoryList" :key="item.chatId">
                 <a-menu-item @click="currentChatId = item.chatId">
                     <span>{{ item.title || '无标题' }}</span>
@@ -29,7 +30,7 @@
 import {
     AlignLeftOutlined
 } from '@ant-design/icons-vue';
-import { ref, computed, onMounted, inject } from 'vue';
+import { ref, computed, onMounted, inject, type Ref, watch } from 'vue';
 import { getChatHistoryListApi } from './aichat_api';
 import SearchIcon from './SearchIcon.vue';
 const collapsed = ref<boolean>(false);
@@ -37,8 +38,8 @@ const selectedKeys = ref<string[]>([]);
 
 const chatHistoryList = ref<any[]>([]);
 const searchText = ref<string>('');
-const currentChatId = inject('currentChatId', ref(null));
-
+const currentChatId = inject('currentChatId' ) as Ref<number | null>; // 获取当前聊天 ID
+const needRefreshHistoryList = inject('needRefreshHistoryList') as Ref<boolean>; // 获取是否需要刷新聊天记录列表
 // 搜索过滤
 const filteredChatHistoryList = computed(() => {
     if (!searchText.value) return chatHistoryList.value;
@@ -46,12 +47,16 @@ const filteredChatHistoryList = computed(() => {
         (item.title || '无标题').toLowerCase().includes(searchText.value.toLowerCase())
     );
 });
-
+watch(() => needRefreshHistoryList.value, async (newValue) => {
+    if (newValue) {
+        await getChatHistoryList();
+        needRefreshHistoryList.value = false; // 重置标志
+    }
+}, { immediate: true }); // 立即执行一次
 function onSearch() {
     // 这里可以扩展为远程搜索，当前为本地过滤
 }
-
-onMounted(async () => {
+async function getChatHistoryList() {
     // 假设 userId 为 1，实际可根据登录用户动态获取
     const userId = 1;
     try {
@@ -66,6 +71,9 @@ onMounted(async () => {
     } catch (e) {
         chatHistoryList.value = [];
     }
+}
+onMounted(async () => {
+    await getChatHistoryList()
 });
 </script>
 <style scoped lang="scss">

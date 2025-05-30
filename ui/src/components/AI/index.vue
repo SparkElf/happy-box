@@ -41,25 +41,31 @@ const loading = ref(false);
 const messages = ref([] as any[]);
 const currentChatId = ref(null)
 const modelName = ref("qwen72")
+const needRefreshHistoryList = ref(false); // 用于标记是否需要刷新聊天记录列表
 provide('messages', messages)
 provide('currentChatId', currentChatId);
 provide('modelName', modelName);
+provide('needRefreshHistoryList',needRefreshHistoryList)
 async function sendMsg() {
     if (inputValue.value.trim() === '') {
         return;
     }
     loading.value = true; // 设置加载状态
-    messages.value = [...messages.value, { role: 'user', content: inputValue.value,type:'text' }];
+
     // 这里可以添加发送消息的逻辑
-    const res = await sendMessageApi({ messages:messages.value,chatId:currentChatId.value,modelName:modelName.value });
+    const res = await sendMessageApi({ messages:[...messages.value, { role: 'user', content: inputValue.value,type:'text' }],chatId:currentChatId.value,modelName:modelName.value });
     if (res.status !== 200) {
         messageApi.error('发送消息失败:');
         loading.value = false; // 重置加载状态
         return;
     }
-    currentChatId.value = res.data.chatId; // 更新当前聊天 ID
-    messages.value = [...messages.value, res.data.message];
+    if (currentChatId.value === null) {
+        // 如果当前聊天 ID 为空，则设置为返回的 chatId
+        currentChatId.value = res.data.chatId;
 
+    }
+
+    messages.value = [...messages.value, { role: 'user', content: inputValue.value,type:'text' }, res.data.message];
     console.log('发送结果:', res);
     console.log('发送消息:', inputValue.value);
     inputValue.value = ''; // 清空输入框

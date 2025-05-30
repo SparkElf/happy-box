@@ -77,8 +77,35 @@ def getAiChatBaseInfoController():
         return jsonify({'error': '未收到请求参数'}), 400
     try:
         chat_id = int(data['chatId'])
+        if not chat_id:
+            return jsonify({'error': '缺少chatId参数'}), 400
         base_info = queryDB("SELECT * FROM aichat WHERE chat_id = %s limit 1 ", (chat_id,))[0]
-        messagges = queryDB("SELECT * FROM aichat_message WHERE chat_id = %s ORDER BY create_time DESC", (chat_id,))
+        messagges = []
+        queries = queryDB("SELECT * FROM aichat_query WHERE chat_id = %s ORDER BY create_time DESC", (chat_id,))
+        responses = queryDB("SELECT * FROM aichat_response WHERE chat_id = %s", (chat_id,))
+        responses_dict = {}
+        for response in responses:
+            if response['queryId'] not in responses_dict:
+                responses_dict[response['queryId']] = []
+            responses_dict[response['queryId']].append(response)
+        for query in queries:
+            message = {
+                'role': 'user',
+                'content': query['query'],
+                'type': query.get('type', 'text'),
+                'messageId': query['id']
+            }
+            messagges.append(message)
+            if query['id'] in responses_dict:
+                for response in responses_dict[query['id']]:
+                    message = {
+                        'role': 'assistant',
+                        'content': response['content'],
+                        'type': response.get('type', 'text'),
+                        'messageId': response['id']  # 自动生成唯一消息ID
+                    }
+                    messagges.append(message)
+
         base_info['messages'] = messagges
         if not messagges:
             return jsonify({'error': '未找到对应的聊天记录'}), 404
@@ -93,6 +120,7 @@ def getAiChatHistoryListController():
         return jsonify({'error': '未收到请求参数'}), 400
     try:
         queries = queryDB("SELECT * FROM aichat where user_id = %s ORDER BY update_time DESC ", (int(data['user_id']),))
+        return jsonify(queries)
     except Exception as e:
         return jsonify({'error': '未知错误,请联系管理员'}), 500
 
