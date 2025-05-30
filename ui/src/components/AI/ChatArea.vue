@@ -41,6 +41,7 @@ watch(messages, (newMessages) => {
 </script>
 <style lang="scss" scoped>
 .ChatArea{
+    box-sizing: border-box;
     padding-top: 20px;
     padding-bottom: 100px;
     $row-padding: 250px;

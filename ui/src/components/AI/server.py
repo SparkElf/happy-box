@@ -230,4 +230,4 @@ def getModelByIdController():
         return jsonify({'error': '未知错误,请联系管理员'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=15000)
+    app.run(host='0.0.0.0', port=15000, debug=True)
