@@ -1,6 +1,6 @@
 <template>
     <div class="AIChat">
-        <a-layout style="min-height: 100vh">
+        <a-layout  :style="{ minHeight: props.height }">
             <SideBar />
             <a-layout>
               <a-layout-header style="background: #fff; padding: 0" >
@@ -29,7 +29,13 @@ import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
 import HeaderArea from "@/components/AI/HeaderArea.vue";
 const [messageApi, contextHolder] = message.useMessage();
-
+const props = defineProps({
+  height: {
+    type: [String, Number],
+    default: '100vh' // 默认是 100vh
+  }
+})
+console.log(props.height,'props.height')
 const inputValue = ref('');
 const loading = ref(false);
 const messages = ref([] as any[]);
