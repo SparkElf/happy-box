@@ -47,6 +47,6 @@ watch(messages, (newMessages) => {
     padding-right: $row-padding;
     padding-left: $row-padding;
     max-height: 80vh;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 </style>
