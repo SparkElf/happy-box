@@ -2,8 +2,8 @@
   <div class="header-container">
 
     <!--    左侧  -->
-    <a-popover placement="bottomLeft" :arrow="false" :open="popOpen"
-       overlayClassName="custom-poper-left" :overlayInnerStyle="{transform: 'translate(10px, 10px)'}" >
+    <a-popover placement="bottomLeft" :arrow="false" v-model:open="popOpen" trigger="click"
+       overlayClassName="custom-poper-left" :overlayInnerStyle="{transform: 'translate(10px, -10px)'}" >
       <template #content>
         <div class="container">
           <div class="search-content">
@@ -22,11 +22,7 @@
             <div :class="['model-line', { active: item.active }]" v-show="item.show">
               <div class="left">
                 <div class="model-image">
-                  <a-image
-                      width="20px"
-                      :src="robotPic"
-                      class="model-mini-image"
-                  />
+                  <a-image width="20px" :src="robotPic" class="model-mini-image" />
                 </div>
                 <div class="model-text">{{item.name}}</div>
                 <div class="model-icon"><PaperClipOutlined /></div>
@@ -41,6 +37,7 @@
       <div class="left-content" @click="popOpen=!popOpen">
         <div class="model-text">{{modelName}}</div>
         <DownOutlined style="margin: 5px 6px 0 6px;font-size: 8px;"/>
+        <PlusOutlined style="margin: 5px 6px 0 6px;font-size: 8px;"/>
       </div>
 
     </a-popover>
@@ -50,38 +47,28 @@
         <div class="icon"><EllipsisOutlined /></div>
         <div class="icon"><ControlOutlined /></div>
         <a-popover placement="bottomRight" :arrow="false" trigger="click"
-             overlayClassName="custom-poper-right" :overlayInnerStyle="{transform: 'translate(10px, 10px)'}" >
+             overlayClassName="custom-poper-right" :overlayInnerStyle="{transform: 'translate(10px, 0)'}" >
           <div class="user-info"></div>
           <template #content>
-            <div class="info-line">
+            <div class="info-line"  @click="logout">
               <div class="icon"><LogoutOutlined /></div>
-              <div class="text" @click="logout">登出</div>
+              <div class="text">登出</div>
             </div>
           </template>
         </a-popover>
       </div>
     </div>
 
-    <a-float-button
-        type="primary"
-        :style="{
-            right: '34px',
-            height: '50px',
-            width: '50px'
-          }"
-        @click="openDialog"
-    >
-      <template #icon>
-        <RobotOutlined />
-      </template>
-    </a-float-button>
+
   </div>
 </template>
 
 
 <script setup lang="ts">
 import {
-  DownOutlined,SearchOutlined,PaperClipOutlined,CheckOutlined,RobotOutlined,EllipsisOutlined,ControlOutlined,LogoutOutlined
+  DownOutlined,SearchOutlined,PaperClipOutlined,CheckOutlined,
+  RobotOutlined,EllipsisOutlined,ControlOutlined,LogoutOutlined,
+  PlusOutlined
 } from '@ant-design/icons-vue';
 import {ref,reactive,onMounted, inject} from 'vue'
 import { message } from 'ant-design-vue';
@@ -90,6 +77,23 @@ import Icon from "@/components/Atom/Image/Icon.vue";
 
 
 // 模型选择弹出框
+const modelList = ref([
+  {
+    name: 'qwq',
+    active: true,
+    show: true
+  },
+  {
+    name: 'qwen72',
+    active: false,
+    show: true
+  },
+  {
+    name: 'deepseek-llama-70b',
+    active: false,
+    show: true
+  }
+])
 const popOpen = ref(false)
 const modelName = inject('modelName');
 function changeModel(clickedItem: any) {
@@ -118,23 +122,7 @@ function searchModel() {
   });
 }
 
-const modelList = ref([
-  {
-    name: 'qwq',
-    active: true,
-    show: true
-  },
-  {
-    name: 'qwen72',
-    active: false,
-    show: true
-  },
-  {
-    name: 'deepseek-llama-70b',
-    active: false,
-    show: true
-  }
-])
+
 
 
 // 右下角悬浮按钮
@@ -170,13 +158,12 @@ function addNew() {
   display: flex;
   align-items: center;
   padding: 0 10px;
-  width: 350px;
-  //border: 1px solid red;
+  //width: 350px;
   cursor: pointer;
   .model-text {
     font-family: "Georgia, serif", sans-serif;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 18px;
     color: rgb(78,78,78);
   }
 }
@@ -210,9 +197,7 @@ function addNew() {
     }
     .icon:hover::after {
       opacity: 1;
-    }
-    .icon:hover::after {
-      transition: opacity 0.5s ease-in-out;
+      transition: opacity 0.2s ease-in-out;
     }
     .user-info {
       width: 30px;
@@ -264,7 +249,7 @@ function addNew() {
       }
       .model-icon {
         margin-left: 5px;
-        font-size: 12px;
+        font-size: 15px;
       }
     }
 
