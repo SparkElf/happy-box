@@ -2,45 +2,50 @@
   <div class="header-container">
 
     <!--    左侧  -->
-    <a-popover placement="bottomLeft" :arrow="false" v-model:open="popOpen" trigger="click"
-       overlayClassName="custom-poper-left" :overlayInnerStyle="{transform: 'translate(10px, -10px)'}" >
-      <template #content>
-        <div class="container">
-          <div class="search-content">
-            <a-input v-model:value="modelSearch"
-             placeholder="搜索模型"
-             class="no-border-no-focus"
-             @change="searchModel"
-            >
-              <template #prefix>
-                <SearchOutlined />
-              </template>
-            </a-input>
-          </div>
-          <a-divider style="margin: 5px 0;"/>
-          <div v-for="(item) in modelList" @click="changeModel(item)">
-            <div :class="['model-line', { active: item.active }]" v-show="item.show">
-              <div class="left">
-                <div class="model-image">
-                  <a-image width="20px" :src="robotPic" class="model-mini-image" />
-                </div>
-                <div class="model-text">{{item.name}}</div>
-                <div class="model-icon"><PaperClipOutlined /></div>
+      <div class="left-content" >
+        <a-popover placement="bottomLeft" :arrow="false" v-model:open="popOpen" trigger="click"
+                   overlayClassName="custom-poper-left" :overlayInnerStyle="{transform: 'translate(10px, -10px)'}" >
+          <template #content>
+            <div class="container">
+              <div class="search-content">
+                <a-input v-model:value="modelSearch"
+                         placeholder="搜索模型"
+                         class="no-border-no-focus"
+                         @change="searchModel"
+                >
+                  <template #prefix>
+                    <SearchOutlined />
+                  </template>
+                </a-input>
               </div>
-              <div class="right" v-show="item.active">
-                <CheckOutlined />
+              <a-divider style="margin: 5px 0;"/>
+              <div v-for="(item) in modelList" @click="changeModel(item)">
+                <div :class="['model-line', { active: item.active }]" v-show="item.show">
+                  <div class="left">
+                    <div class="model-image">
+                      <a-image width="20px" :src="robotPic" class="model-mini-image" />
+                    </div>
+                    <div class="model-text">{{item.name}}</div>
+                    <div class="model-icon"><PaperClipOutlined /></div>
+                  </div>
+                  <div class="right" v-show="item.active">
+                    <CheckOutlined />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </template>
+        <div class=popper-area @click="popOpen=!popOpen">
+          <div class="model-text">{{modelName}}</div>
+          <DownOutlined style="margin: 5px 0 0 6px;font-size: 8px;"/>
         </div>
-      </template>
-      <div class="left-content" @click="popOpen=!popOpen">
-        <div class="model-text">{{modelName}}</div>
-        <DownOutlined style="margin: 5px 6px 0 6px;font-size: 8px;"/>
-        <PlusOutlined style="margin: 5px 6px 0 6px;font-size: 8px;"/>
+        </a-popover>
+        <a-tooltip placement="bottom" trigger="hover">
+          <template #title>新建对话</template>
+          <PlusOutlined style="font-size: 8px;" class="new-chat" @click="newChat"/>
+        </a-tooltip>
       </div>
 
-    </a-popover>
     <!--    右侧  -->
     <div class="right-content">
       <div class="icons">
@@ -137,8 +142,8 @@ function logout() {
 }
 
 // 新增对话
-function addNew() {
-  message.success('addNew!')
+function newChat() {
+  message.success('newChat!')
 }
 
 </script>
@@ -159,13 +164,25 @@ function addNew() {
   align-items: center;
   padding: 0 10px;
   //width: 350px;
-  cursor: pointer;
-  .model-text {
-    font-family: "Georgia, serif", sans-serif;
-    font-weight: 500;
-    font-size: 18px;
-    color: rgb(78,78,78);
+  //cursor: pointer;
+  .popper-area {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    //width: 350px;
+    cursor: pointer;
+    .model-text {
+      font-family: "Georgia, serif", sans-serif;
+      font-weight: 500;
+      font-size: 18px;
+      color: rgb(78,78,78);
+    }
   }
+  .new-chat {
+    cursor: pointer;
+    margin-top: 3px;
+  }
+
 }
 .right-content {
   width: 200px;
