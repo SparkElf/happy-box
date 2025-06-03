@@ -62,7 +62,7 @@ async function sendMsg() {
     if (currentChatId.value === null) {
         // 如果当前聊天 ID 为空，则设置为返回的 chatId
         currentChatId.value = res.data.chatId;
-
+        needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
     }
 
     messages.value = [...messages.value, { role: 'user', content: inputValue.value,type:'text' }, res.data.message];

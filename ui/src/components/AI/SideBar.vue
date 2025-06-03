@@ -17,7 +17,10 @@
             </a-input>
         </div>
         <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed"
-            style="background-color: transparent; border: none;">
+            style="background-color: transparent; border: none;" :items="filteredChatHistoryList.map(item => ({
+                key: item.chatId.toString(),
+                label: item.title || '无标题',
+            }))">
             <template v-for="item in filteredChatHistoryList" :key="item.chatId">
                 <a-menu-item @click="currentChatId = item.chatId">
                     <span>{{ item.title || '无标题' }}</span>
@@ -50,6 +53,7 @@ const filteredChatHistoryList = computed(() => {
 watch(() => needRefreshHistoryList.value, async (newValue) => {
     if (newValue) {
         await getChatHistoryList();
+        console.log('刷新聊天记录列表',filteredChatHistoryList.value);
         needRefreshHistoryList.value = false; // 重置标志
     }
 }, { immediate: true }); // 立即执行一次
@@ -65,7 +69,12 @@ async function getChatHistoryList() {
             chatHistoryList.value = res.data;
             console.log('聊天记录列表:', chatHistoryList.value);
             if (chatHistoryList.value.length > 0) {
-                //selectedKeys.value = [String(chatHistoryList.value[0].id)];
+                selectedKeys.value = [];
+                if (currentChatId.value) {
+                    selectedKeys.value = [currentChatId.value?.toString() ];
+                }
+
+                console.log('当前选中的聊天 ID:', selectedKeys.value);
             }
         }
     } catch (e) {
