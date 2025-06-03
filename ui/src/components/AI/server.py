@@ -81,8 +81,8 @@ def getAiChatBaseInfoController():
             return jsonify({'error': '缺少chatId参数'}), 400
         base_info = queryDB("SELECT * FROM aichat WHERE chat_id = %s limit 1 ", (chat_id,))[0]
         messagges = []
-        queries = queryDB("SELECT * FROM aichat_query WHERE chat_id = %s ORDER BY create_time DESC", (chat_id,))
-        responses = queryDB("SELECT * FROM aichat_response WHERE chat_id = %s", (chat_id,))
+        queries = queryDB("SELECT * FROM aichat_query WHERE chat_id = %s ORDER BY create_time ASC", (chat_id,))
+        responses = queryDB("SELECT * FROM aichat_response WHERE chat_id = %s ORDER BY update_time ASC", (chat_id,))
         responses_dict = {}
         for response in responses:
             if response['queryId'] not in responses_dict:
@@ -153,9 +153,9 @@ def getChatTitle(messages,model_name=None):
     if not model_name:
         return messages[0]['content']
     if model_name == 'deepseek':
-        task_massages = messages+ [{'role': 'system', 'content': '请根据用户输入的内容生成标题,不超过10个字'}]
+        task_massages = messages+ [{'role': 'system', 'content': '请根据用户输入的内容概括总结生成标题,不超过10个字'}]
         response = modelService(model_name, task_massages)
-        return response['message']['content']
+        return response['content']
 
 @app.route('/completions', methods=['POST'])
 def chatController():
@@ -180,7 +180,7 @@ def chatController():
         with conn.cursor() as cursor:
             if not chat_id:
                 model_name = data['modelName']
-                title = getChatTitle(messages)
+                title = getChatTitle(messages, model_name)
                 if not model_name:
                     return jsonify({'error': '缺少模型名称'}), 400
                 cursor.execute("INSERT INTO aichat (user_id, model_name, title) VALUES (%s, %s, %s)", (user_info['user_id'], model_name, title))

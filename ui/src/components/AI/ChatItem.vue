@@ -20,7 +20,7 @@
                             }}</span>
                     </div>
                 </template>
-                <a-collapse-panel key="1" :style="'background: #fff;border-radius: 4px;border: 0;overflow: hidden'">
+                <a-collapse-panel key="1" :style="'background: #fff;border-radius: 4px;border: 0;overflow: hidden'" v-if="steps.length > 0">
                     <a-steps style="min-width: 500px;padding-left:10px;padding-top: 10px;;" size="small"
                         :current="currentStepIndex" :items="props.steps.map(item => ({ title: item.name }))"></a-steps>
                 </a-collapse-panel>
@@ -28,7 +28,7 @@
 
         </div>
         <div class="Content">
-            <span class="Text" v-html="renderedContent"></span>
+            <span class="Text markdown-body " data-theme="light" v-html="renderedContent"></span>
             <!-- <div class="Time">{{ time }}</div> -->
         </div>
     </div>
@@ -54,7 +54,8 @@ const props = withDefaults(defineProps<{
     time: new Date().toLocaleTimeString(),
     userName: 'User',
     modelName: 'Qwen3',
-    steps: () => [{ id: 0, name: '示例步骤1', content: '这是一个示例步骤', status: 'completed' }, { id: 1, name: '示例步骤2', content: '这是一个示例步骤2', status: 'running' }, { id: 0, name: '示例步骤3', content: '这是一个示例步骤3', status: 'not-started' }]
+    steps: () => []
+    //steps: () => [{ id: 0, name: '示例步骤1', content: '这是一个示例步骤', status: 'completed' }, { id: 1, name: '示例步骤2', content: '这是一个示例步骤2', status: 'running' }, { id: 0, name: '示例步骤3', content: '这是一个示例步骤3', status: 'not-started' }]
 });
 watch(() => props, (newContent) => {
     console.log('内容更新:', newContent);
@@ -87,7 +88,7 @@ const avatar = computed(() => {
 });
 </script>
 <style lang="scss">
-
+@import './markdown.css';
 </style>
 <style lang="scss" scoped>
 .ChatItem {
@@ -163,7 +164,7 @@ const avatar = computed(() => {
 
         .Text {
             //margin-bottom: 5px;
-            text-align: center;
+           // text-align: center;
             height: 100%;
 
 

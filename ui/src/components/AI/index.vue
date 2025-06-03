@@ -1,5 +1,5 @@
 <template>
-    <div class="AIChat">
+    <div class="AIChat" >
         <a-layout  :style="{ minHeight: props.height }">
             <SideBar />
             <a-layout>
@@ -77,7 +77,7 @@ async function sendMsg() {
         needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
     }
 
-    messages.value = [...messages.value, { role: 'user', content: inputValue.value,type:'text' }, res.data.message];
+    messages.value = [...messages.value, { role: 'user', content: inputValue.value,type:'text' }, {role: 'assistant',content:res.data.message,type:'text'}]; // 更新消息列表
     console.log('发送结果:', res);
     console.log('发送消息:', inputValue.value);
     inputValue.value = ''; // 清空输入框

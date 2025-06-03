@@ -44,7 +44,7 @@ watch(messages, (newMessages) => {
     box-sizing: border-box;
     padding-top: 20px;
     padding-bottom: 100px;
-    $row-padding: 250px;
+    $row-padding: 220px;
     padding-right: $row-padding;
     padding-left: $row-padding;
     height: 65vh;
