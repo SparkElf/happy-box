@@ -5,22 +5,24 @@
             <div v-if="role === 'user'" class="UserName">{{ userName }}</div>
             <div v-else class="UserName">机器人</div>
             <div v-if="role === 'assistant'" class="BotIcon">🤖</div>
-            <el-tag round v-if="role === 'assistant'" class="ModelName" style="margin-left: 10px">{{ modelName }}</el-tag>
+            <el-tag round v-if="role === 'assistant'" class="ModelName" style="margin-left: 10px">{{ modelName
+                }}</el-tag>
         </div>
         <div class="Pipeline" v-if="role === 'assistant'">
             <a-collapse v-model:activeKey="activeKey" :bordered="false" style="background: rgb(255, 255, 255)">
                 <template #expandIcon="{ isActive }">
                     <div class="StepsHeader" style="display:flex;align-items: center;">
-                        <a-spin v-if="currentStep?.status == 'running'" size="small" ></a-spin>
-                        <a-result v-if="currentStepIndex == steps.length-1 && currentStep?.status == 'completed'" status="success" ></a-result>
+                        <a-spin v-if="currentStep?.status == 'running'" size="small"></a-spin>
+                        <a-result v-if="currentStepIndex == steps.length - 1 && currentStep?.status == 'completed'"
+                            status="success"></a-result>
                         <!-- <caret-right-outlined :rotate="isActive ? 90 : 0" style="margin-right: 10px;" /> -->
-                        <span style="font-size: 14px;margin-left: 10px;color: #7a7a7a;">{{ currentStep?.name ?? '未知错误' }}</span>
+                        <span style="font-size: 14px;margin-left: 10px;color: #7a7a7a;">{{ currentStep?.name ?? '未知错误'
+                            }}</span>
                     </div>
                 </template>
-                <a-collapse-panel key="1"
-                    :style="'background: #fff;border-radius: 4px;border: 0;overflow: hidden'">
-                    <a-steps style="min-width: 500px;padding-left:10px;padding-top: 10px;;" size="small" :current="currentStepIndex"
-                        :items="props.steps.map(item => ({ title: item.name }))"></a-steps>
+                <a-collapse-panel key="1" :style="'background: #fff;border-radius: 4px;border: 0;overflow: hidden'">
+                    <a-steps style="min-width: 500px;padding-left:10px;padding-top: 10px;;" size="small"
+                        :current="currentStepIndex" :items="props.steps.map(item => ({ title: item.name }))"></a-steps>
                 </a-collapse-panel>
             </a-collapse>
 
@@ -34,10 +36,11 @@
 <script lang="ts" setup>
 import AvatarImg from './avatar.jpg';
 import RobotImg from './robot.jpg';
-import { computed, ref, withDefaults } from 'vue';
+import { computed, ref, watch, withDefaults } from 'vue';
 import { marked } from 'marked'; // 引入 marked 库
 import type { Step } from './type';
 import { CaretRightOutlined } from '@ant-design/icons-vue';
+
 const props = withDefaults(defineProps<{
     role?: 'user' | 'assistant';
     content?: string;
@@ -53,10 +56,24 @@ const props = withDefaults(defineProps<{
     modelName: 'Qwen3',
     steps: () => [{ id: 0, name: '示例步骤1', content: '这是一个示例步骤', status: 'completed' }, { id: 1, name: '示例步骤2', content: '这是一个示例步骤2', status: 'running' }, { id: 0, name: '示例步骤3', content: '这是一个示例步骤3', status: 'not-started' }]
 });
+watch(() => props, (newContent) => {
+    console.log('内容更新:', newContent);
+}, { immediate: true }); // 立即执行一次
+
+
+
+
 
 // 使用 computed 属性来生成渲染后的 Markdown 内容
 const renderedContent = computed(() => {
-    return marked(props.content || '');
+  const content = props.content || '';
+
+  // 判断是否为单句（比如不含换行）
+  if (!content.includes('\n')) {
+    return marked.parseInline(content);
+  }
+
+  return marked.parse(content);
 });
 const activeKey = ref<string[]>(['0']);
 const currentStepIndex = computed(() => {
@@ -69,6 +86,9 @@ const avatar = computed(() => {
     return props.role === 'user' ? AvatarImg : RobotImg; // 如果是用户角色，返回空字符串，否则返回默认头像
 });
 </script>
+<style lang="scss">
+
+</style>
 <style lang="scss" scoped>
 .ChatItem {
     display: flex;
@@ -84,7 +104,8 @@ const avatar = computed(() => {
                 margin-right: 10px;
             }
         }
-        .Content{
+
+        .Content {
             background-color: transparent;
             padding-left: 2px;
             padding-right: 0;
@@ -101,6 +122,8 @@ const avatar = computed(() => {
                 margin-left: 10px;
             }
         }
+
+
 
     }
 
@@ -143,9 +166,7 @@ const avatar = computed(() => {
             text-align: center;
             height: 100%;
 
-            p {
-                margin-bottom: 0;
-            }
+
         }
 
         .Time {
@@ -154,7 +175,8 @@ const avatar = computed(() => {
             text-align: right;
         }
     }
-    .Pipeline{
+
+    .Pipeline {
         ::v-deep(.ant-collapse>.ant-collapse-item >.ant-collapse-header) {
             padding: 5px;
         }

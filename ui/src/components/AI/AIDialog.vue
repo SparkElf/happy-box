@@ -1,7 +1,7 @@
 <template>
   <div class="ai-dialog-container">
     <a-modal v-model:open="open" width="80vw" style="height: 80vh" :wrapStyle="{ top: '-50px' }" @ok="open=false">
-      <AIChat height="75vh"></AIChat>
+      <AIChat ></AIChat>
     </a-modal>
     <a-float-button
         type="primary"

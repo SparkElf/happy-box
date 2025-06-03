@@ -1,6 +1,6 @@
 <template>
     <div class="ChatArea">
-        <ChatItem v-for="(item,index) in messages" :key="index" :role="item.role" v-if="currentChatId"/>
+        <ChatItem v-for="(item,index) in messages"  :role="item.role" v-if="currentChatId" :content="item.content" :model-name="modelName"/>
         <div class="Welcome" v-else style="display: flex; justify-content: center;align-items: center; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%)">
             <img class="Logo" :src="RobotIcon" style="border-radius: 50%; width: 50px; height: 50px"></img>
             <div class="WelcomeText" style="font-size: 32px;margin-left: 24px;">欢迎</div>
@@ -47,7 +47,8 @@ watch(messages, (newMessages) => {
     $row-padding: 250px;
     padding-right: $row-padding;
     padding-left: $row-padding;
-    max-height: 80vh;
+    height: 65vh;
+
     overflow-y: auto;
     &::-webkit-scrollbar {
       height: .4rem;

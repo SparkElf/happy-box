@@ -19,7 +19,7 @@
                 </a-input>
               </div>
               <a-divider style="margin: 5px 0;"/>
-              <div v-for="(item) in modelList" @click="changeModel(item)">
+              <div v-for="(item) in modelMenuList" @click="changeModel(item)">
                 <div :class="['model-line', { active: item.active }]" v-show="item.show">
                   <div class="left">
                     <div class="model-image">
@@ -75,34 +75,32 @@ import {
   RobotOutlined,EllipsisOutlined,ControlOutlined,LogoutOutlined,
   PlusOutlined
 } from '@ant-design/icons-vue';
-import {ref,reactive,onMounted, inject} from 'vue'
+import {ref,reactive,onMounted, inject, watch} from 'vue'
 import { message } from 'ant-design-vue';
 import robotPic from '@/components/AI/robot.jpg'
 import Icon from "@/components/Atom/Image/Icon.vue";
-
-
+import { getModelListApi } from './aichat_api';
+const currentChatId = inject('currentChatId'); // 获取当前聊天 ID
+const modelList = inject('modelList'); // 获取模型列表
+const needRefreshHistoryList = inject('needRefreshHistoryList'); // 获取是否需要刷新聊天记录列表
 // 模型选择弹出框
-const modelList = ref([
-  {
-    name: 'qwq',
-    active: true,
-    show: true
-  },
-  {
-    name: 'qwen72',
-    active: false,
-    show: true
-  },
-  {
-    name: 'deepseek-llama-70b',
-    active: false,
-    show: true
-  }
-])
-const popOpen = ref(false)
+const modelMenuList = ref([] as any[]); // 模型菜单列表
 const modelName = inject('modelName');
+const popOpen = ref(false)
+
+watch(() => modelList.value, (newValue) => {
+  modelMenuList.value = newValue.map((item,index) => ({
+    name: item.modelName,
+    active: index === 0, // 默认第一个模型为选中状态
+    show: true
+  }));
+  if(modelMenuList.value.length > 0)
+    modelName.value = modelMenuList.value[0].name; // 默认选中第一个模型
+}, { immediate: true });
+
+
 function changeModel(clickedItem: any) {
-  modelList.value.forEach(item => {
+  modelMenuList.value.forEach(item => {
     item.active = (item.name === clickedItem.name);
     if (item.name === clickedItem.name) {
       modelName.value = clickedItem.name;
@@ -116,7 +114,7 @@ const modelSearch = ref('')
 // 模型搜索
 function searchModel() {
   const keyword = modelSearch.value.trim(); // 去掉前后空格
-  modelList.value = modelList.value.map(model => {
+  modelMenuList.value = modelMenuList.value.map(model => {
     // 判断 name 是否以 item 开头（区分大小写）
     const shouldShow = keyword === '' || model.name.startsWith(keyword);
 
@@ -143,7 +141,9 @@ function logout() {
 
 // 新增对话
 function newChat() {
-  message.success('newChat!')
+  //message.success('newChat!')
+  currentChatId.value = null; // 清空当前聊天 ID
+  needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
 }
 
 </script>

@@ -23,8 +23,8 @@
 <script lang="ts" setup>
 import SideBar from './SideBar.vue';
 import ChatArea from './ChatArea.vue';
-import { provide, ref } from 'vue';
-import { sendMessageApi,getAiChatBaseInfoApi } from './aichat_api'
+import { onMounted, provide, ref } from 'vue';
+import { sendMessageApi,getAiChatBaseInfoApi,getModelListApi } from './aichat_api'
 import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
 import HeaderArea from "@/components/AI/HeaderArea.vue";
@@ -32,7 +32,7 @@ const [messageApi, contextHolder] = message.useMessage();
 const props = defineProps({
   height: {
     type: [String, Number],
-    default: '100vh' // 默认是 100vh
+    default: '100%'
   }
 })
 console.log(props.height,'props.height')
@@ -42,10 +42,22 @@ const messages = ref([] as any[]);
 const currentChatId = ref(null)
 const modelName = ref("qwen72")
 const needRefreshHistoryList = ref(false); // 用于标记是否需要刷新聊天记录列表
+const modelList = ref([] as any[]); // 模型列表
 provide('messages', messages)
 provide('currentChatId', currentChatId);
 provide('modelName', modelName);
-provide('needRefreshHistoryList',needRefreshHistoryList)
+provide('needRefreshHistoryList', needRefreshHistoryList)
+provide('modelList', modelList); // 提供模型列表
+onMounted(async () => {
+    // 获取模型列表
+    const res = await getModelListApi();
+    if (res.status !== 200) {
+        messageApi.error('获取模型列表失败');
+        return;
+    }
+    modelList.value = res.data; // 设置模型列表
+    console.log('模型列表:', modelList.value);
+});
 async function sendMsg() {
     if (inputValue.value.trim() === '') {
         return;

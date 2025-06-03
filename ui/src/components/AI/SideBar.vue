@@ -17,10 +17,7 @@
             </a-input>
         </div>
         <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed"
-            style="background-color: transparent; border: none;" :items="filteredChatHistoryList.map(item => ({
-                key: item.chatId.toString(),
-                label: item.title || '无标题',
-            }))">
+            style="background-color: transparent; border: none;" >
             <template v-for="item in filteredChatHistoryList" :key="item.chatId">
                 <a-menu-item @click="currentChatId = item.chatId">
                     <span>{{ item.title || '无标题' }}</span>
@@ -41,7 +38,7 @@ const selectedKeys = ref<string[]>([]);
 
 const chatHistoryList = ref<any[]>([]);
 const searchText = ref<string>('');
-const currentChatId = inject('currentChatId' ) as Ref<number | null>; // 获取当前聊天 ID
+const currentChatId = inject('currentChatId') as Ref<number | null>; // 获取当前聊天 ID
 const needRefreshHistoryList = inject('needRefreshHistoryList') as Ref<boolean>; // 获取是否需要刷新聊天记录列表
 // 搜索过滤
 const filteredChatHistoryList = computed(() => {
@@ -50,6 +47,12 @@ const filteredChatHistoryList = computed(() => {
         (item.title || '无标题').toLowerCase().includes(searchText.value.toLowerCase())
     );
 });
+watch(() => currentChatId.value, (newValue) => {
+    console.log('当前点击选中的聊天 ID:', newValue);
+}, { immediate: true }); // 立即执行一次
+watch(() => filteredChatHistoryList.value, (newValue) => {
+    console.log('过滤后的聊天记录列表:', newValue);
+})
 watch(() => needRefreshHistoryList.value, async (newValue) => {
     if (newValue) {
         await getChatHistoryList();

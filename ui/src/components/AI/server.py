@@ -125,7 +125,19 @@ def getAiChatHistoryListController():
         return jsonify({'error': '未知错误,请联系管理员'}), 500
 
 import requests
-def modelService(model_name,messages):
+from openai import OpenAI
+def modelService(model_name,messages,stream=False):
+    if model_name == 'deepseek':
+        client = OpenAI(api_key="sk-d881829fbed84aba8b921388938a2e61", base_url="https://api.deepseek.com")
+        response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=messages,
+                stream=False
+            )
+        if not stream:
+            return {"content":response.choices[0].message.content,"type":"text"}
+        else:
+            return {"content":response,"type":"streamtext"}
     return {'message':{'role':'assistant','content':'模型消息mock','type':'text'},'pipelines':[{'sql': 'SELECT * FROM users', 'status': 'not-started', 'name': '查询用户信息'}]}
     if model_name == 'chat.qwen.aiqwen-Qwen3-235B-A22B':
         model_info=queryDB("SELECT * FROM aichat_model WHERE model_name = 'chat.qwen.aiqwen-Qwen3-235B-A22B' limit 1")
@@ -137,8 +149,13 @@ def modelService(model_name,messages):
         print(res.cookies)
         return "远程Qwen模型服务"
     raise Exception("未知模型")
-def getChatTitle(messages):
-    return messages[0]['content']
+def getChatTitle(messages,model_name=None):
+    if not model_name:
+        return messages[0]['content']
+    if model_name == 'deepseek':
+        task_massages = messages+ [{'role': 'system', 'content': '请根据用户输入的内容生成标题,不超过10个字'}]
+        response = modelService(model_name, task_massages)
+        return response['message']['content']
 
 @app.route('/completions', methods=['POST'])
 def chatController():
@@ -179,15 +196,17 @@ def chatController():
                            (chat_id, message['content'], message.get('type', 'text')))
             query_id = cursor.lastrowid
             response = modelService(model_name, messages)
-            response_id =cursor.execute("INSERT INTO aichat_response (chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
-                           (chat_id, query_id, response['message']['content'], response['message'].get('type', 'text'), model_name))
-            pipelines = response['pipelines']
-            for pipeline in pipelines:
-                print(f"Pipeline: {pipeline}")
-                cursor.execute("INSERT INTO aichat_pipeline (response_id, content, status, name) VALUES (%s, %s, %s, %s)",
-                               (response_id, pipeline['sql'], pipeline['status'], pipeline['name']))
+            if response['type'] == 'text':
+                response_id =cursor.execute("INSERT INTO aichat_response (chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
+                            (chat_id, query_id, response['content'], response.get('type', 'text'), model_name))
+
+            # pipelines = response['pipelines']
+            # for pipeline in pipelines:
+            #     print(f"Pipeline: {pipeline}")
+            #     cursor.execute("INSERT INTO aichat_pipeline (response_id, content, status, name) VALUES (%s, %s, %s, %s)",
+            #                    (response_id, pipeline['sql'], pipeline['status'], pipeline['name']))
             conn.commit()
-        return jsonify({'message': response['message'], "sql": pipelines, "chatId": chat_id})
+        return jsonify({'message': response['content'], "sql": None, "chatId": chat_id})
     except Exception as e:
         print(f"Error: {e}")
         if conn:
@@ -200,13 +219,7 @@ def chatController():
 @app.route('/getModelList', methods=['POST'])
 def getModelListController():
     try:
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            sql = "SELECT * FROM aichat_model ORDER BY model_id ASC"
-            cursor.execute(sql)
-            result = cursor.fetchall()
-        conn.close()
-        return jsonify(result)
+        return jsonify(queryDB( "SELECT * FROM aichat_model ORDER BY model_name"))
     except Exception as e:
         return jsonify({'error': '未知错误,请联系管理员'}), 500
 
