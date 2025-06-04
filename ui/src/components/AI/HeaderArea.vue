@@ -50,7 +50,12 @@
     <div class="right-content">
       <div class="icons">
         <div class="icon"><EllipsisOutlined /></div>
-        <div class="icon"><ControlOutlined /></div>
+        <a-tooltip>
+                <template #title v-if="!stream" placement="bottom">开启流式回复</template>
+                <template #title v-else placement="bottom">关闭流式回复</template>
+                <div class="icon" @click="stream = !stream" ><ControlOutlined /></div>
+            </a-tooltip>
+
         <a-popover placement="bottomRight" :arrow="false" trigger="click"
              overlayClassName="custom-poper-right" :overlayInnerStyle="{transform: 'translate(10px, 0)'}" >
           <div class="user-info"></div>
@@ -87,7 +92,7 @@ const needRefreshHistoryList = inject('needRefreshHistoryList'); // 获取是否
 const modelMenuList = ref([] as any[]); // 模型菜单列表
 const modelName = inject('modelName');
 const popOpen = ref(false)
-
+const stream = inject('stream'); // 获取流式响应状态
 watch(() => modelList.value, (newValue) => {
   modelMenuList.value = newValue.map((item,index) => ({
     name: item.modelName,

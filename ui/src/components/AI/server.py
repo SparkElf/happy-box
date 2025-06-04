@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
+from numpy import full
 import pymysql
 import uuid  # 新增
 ### message格式:
@@ -70,6 +71,86 @@ def executeDB(sql, params=None, fetch=False):
     except Exception as e:
         print(f"Database execute error: {e}")
         raise Exception("数据库操作失败")
+def toolSelection(messages, model_name):
+    prompt = "请根据对话记录判断用户当前是简单聊天还是需要执行SQL查询，返回结果为json格式,如果是简单聊天返回{'type':'chat'}，如果需要执行SQL查询返回{'type':'sql'}"
+    query = messages+ [{'role': 'system', 'content': prompt}]
+    response = modelService(model_name, query)
+    if response['type'] == 'text':
+        content = response['content']
+        if 'sql' in content.lower():
+            return {'type': 'sql'}
+        else:
+            return {'type': 'chat'}
+    else:
+        raise Exception("模型返回格式错误")
+
+def initPipeline(type, model_name,messages,response_id,conn):
+    pipelines = [(response_id, "", "not-started","选择工具")]
+    if type == 'sql':
+        pipelines += [(response_id, "", "not-started","SQL查询")]
+    pipelines += [(response_id, "", "not-started","生成回复")]
+    for i, pipeline in enumerate(pipelines):
+        pipelines[i] = (pipeline[0], pipeline[1], pipeline[2], pipeline[3], i + 1)  # 添加序号
+    try:
+        batch_insert_pipeline(conn, pipelines)
+    except Exception as e:
+        print(f"Error initializing pipeline: {e}")
+        raise Exception("初始化管道失败")
+
+def insertPipeline(conn,response_id, name,status,content=""):
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("INSERT INTO aichat_pipeline (response_id, content, status, name) VALUES (%s, %s, %s, %s)",
+                           (response_id, content, status, name))
+        conn.commit()
+    except Exception as e:
+        print(f"Error inserting pipeline: {e}")
+        raise Exception("插入管道失败")
+def updatePipeline(conn,response_id, status):
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("UPDATE aichat_pipeline SET status = %s WHERE response_id = %s", (status, response_id))
+        conn.commit()
+    except Exception as e:
+        print(f"Error updating pipeline: {e}")
+        raise Exception("更新管道状态失败")
+def batch_insert_pipeline(conn, items):
+    """
+    批量插入 aichat_pipeline 记录
+
+    :param conn: pymysql 连接对象
+    :param items: 列表，每项是 (response_id, content, status, name)
+    """
+    if not items:
+        print("没有数据需要插入")
+        return
+
+    sql = "INSERT INTO aichat_pipeline (response_id, content, status, name, seq) VALUES (%s, %s, %s, %s, %s)"
+
+    try:
+        with conn.cursor() as cursor:
+            cursor.executemany(sql, items)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        print(f"Error batch inserting pipeline: {e}")
+        raise Exception("批量插入管道失败")
+def delPipelineByResponseIdAndName(response_id,conn,name=None):
+    """
+    删除指定 response_id 和 name 的管道记录
+    """
+    try:
+        with conn.cursor() as cursor:
+            if name:
+                cursor.execute("DELETE FROM aichat_pipeline WHERE response_id = %s AND name = %s", (response_id, name))
+            else:
+                cursor.execute("DELETE FROM aichat_pipeline WHERE response_id = %s", (response_id,))
+        conn.commit()
+    except Exception as e:
+        print(f"Error deleting pipeline: {e}")
+        raise Exception("删除管道失败")
+
+
 @app.route('/getAiChatBaseInfo', methods=['POST'])
 def getAiChatBaseInfoController():
     data = request.get_json()
@@ -102,7 +183,8 @@ def getAiChatBaseInfoController():
                         'role': 'assistant',
                         'content': response['content'],
                         'type': response.get('type', 'text'),
-                        'messageId': response['id']  # 自动生成唯一消息ID
+                        'messageId': response['id'],  # 自动生成唯一消息ID
+                        'modelName': response.get('modelName', '未知模型')  # 模型名称
                     }
                     messagges.append(message)
 
@@ -132,7 +214,7 @@ def modelService(model_name,messages,stream=False):
         response = client.chat.completions.create(
                 model="deepseek-chat",
                 messages=messages,
-                stream=False
+                stream=stream
             )
         if not stream:
             return {"content":response.choices[0].message.content,"type":"text"}
@@ -166,6 +248,7 @@ def chatController():
     token = request.headers.get('Authorization', None)
     messages = data.get('messages', None)
     chat_id = data.get('chatId', None)
+    stream = data.get('stream', False)
     if not messages or not isinstance(messages, list):
         return jsonify({'error': '空对话'}), 400
     if not token:
@@ -177,28 +260,52 @@ def chatController():
     conn = None
     try:
         conn = get_db_connection()
-        with conn.cursor() as cursor:
-            if not chat_id:
-                model_name = data['modelName']
-                title = getChatTitle(messages, model_name)
-                if not model_name:
-                    return jsonify({'error': '缺少模型名称'}), 400
-                cursor.execute("INSERT INTO aichat (user_id, model_name, title) VALUES (%s, %s, %s)", (user_info['user_id'], model_name, title))
-                chat_id = cursor.lastrowid
-            else:
-                cursor.execute("SELECT model_name FROM aichat WHERE chat_id = %s limit 1", (chat_id,))
-                row = cursor.fetchone()
-                if not row:
-                    return jsonify({'error': 'chat_id不合法'}), 400
-                model_name = row['model_name']
-            message = messages[-1]
-            cursor.execute("INSERT INTO aichat_query (chat_id , query, type) VALUES (%s,  %s, %s)",
-                           (chat_id, message['content'], message.get('type', 'text')))
-            query_id = cursor.lastrowid
-            response = modelService(model_name, messages)
-            if response['type'] == 'text':
-                response_id =cursor.execute("INSERT INTO aichat_response (chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
-                            (chat_id, query_id, response['content'], response.get('type', 'text'), model_name))
+        cursor = conn.cursor()
+        if not chat_id:
+            model_name = data['modelName']
+            title = getChatTitle(messages, model_name)
+            if not model_name:
+                return jsonify({'error': '缺少模型名称'}), 400
+            cursor.execute("INSERT INTO aichat (user_id, model_name, title) VALUES (%s, %s, %s)", (user_info['user_id'], model_name, title))
+            chat_id = cursor.lastrowid
+        else:
+            cursor.execute("SELECT model_name FROM aichat WHERE chat_id = %s limit 1", (chat_id,))
+            row = cursor.fetchone()
+            if not row:
+                return jsonify({'error': 'chat_id不合法'}), 400
+            model_name = row['model_name']
+        message = messages[-1]
+        cursor.execute("INSERT INTO aichat_query (chat_id , query, type) VALUES (%s,  %s, %s)",
+                        (chat_id, message['content'], message.get('type', 'text')))
+        query_id = cursor.lastrowid
+        response = modelService(model_name, messages,stream=stream)
+        full_content = ""
+        if stream:
+            def generate():
+                print(response)
+                nonlocal full_content
+                nonlocal cursor
+                try:
+                    for chunk in response['content']:
+                        print(chunk)
+                        content=chunk.choices[0].delta.content
+                        if content:
+                            full_content += content
+                            yield content
+                except Exception as e:
+                    print(f"Error during streaming: {e}")
+                    conn.rollback()
+                finally:
+                    response_id =cursor.execute("INSERT INTO aichat_response (chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
+                            (chat_id, query_id, full_content, response.get('type', 'text'), model_name))
+                    conn.commit()
+                    conn.close()
+            return Response(generate(), mimetype='text/event-stream')
+        else:
+            full_content = response['content']
+        if response['type'] == 'text':
+            response_id =cursor.execute("INSERT INTO aichat_response (chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
+                        (chat_id, query_id, full_content, response.get('type', 'text'), model_name))
 
             # pipelines = response['pipelines']
             # for pipeline in pipelines:
@@ -213,7 +320,7 @@ def chatController():
             conn.rollback()
         return jsonify({'error': '服务异常，请联系管理员', 'detail': str(e)}), 500
     finally:
-        if conn:
+        if conn and not stream:
             conn.close()
 
 @app.route('/getModelList', methods=['POST'])
@@ -241,6 +348,20 @@ def getModelByIdController():
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': '未知错误,请联系管理员'}), 500
+@app.route('/getPipelineList', methods=['POST'])
+def getPipelineListController():
+    data = request.get_json()
+    if not data or 'queryId' not in data:
+        return jsonify({'error': '缺少queryId参数'}), 400
+    query_id = data['queryId']
+    try:
+        pipelines = queryDB("SELECT * FROM aichat_pipeline WHERE query_id = %s ORDER BY seq", (int(query_id),))
+        if not pipelines:
+            pipelines = []
+        return jsonify(pipelines)
+    except Exception as e:
+        return jsonify({'error': '未知错误,请联系管理员'}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=15000, debug=True)

@@ -1,11 +1,11 @@
 <template>
-    <div class="AIChat" >
-        <a-layout  :style="{ minHeight: props.height }">
+    <div class="AIChat">
+        <a-layout :style="{ minHeight: props.height }">
             <SideBar />
             <a-layout>
-              <a-layout-header style="background: #fff; padding: 0" >
-                <HeaderArea></HeaderArea>
-              </a-layout-header>
+                <a-layout-header style="background: #fff; padding: 0">
+                    <HeaderArea></HeaderArea>
+                </a-layout-header>
                 <a-layout-content style="margin: 0 0px">
                     <ChatArea />
                 </a-layout-content>
@@ -24,18 +24,18 @@
 import SideBar from './SideBar.vue';
 import ChatArea from './ChatArea.vue';
 import { onMounted, provide, ref } from 'vue';
-import { sendMessageApi,getAiChatBaseInfoApi,getModelListApi } from './aichat_api'
+import { chatApi, getAiChatBaseInfoApi, getModelListApi, chatStreamApi } from './aichat_api'
 import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
 import HeaderArea from "@/components/AI/HeaderArea.vue";
 const [messageApi, contextHolder] = message.useMessage();
 const props = defineProps({
-  height: {
-    type: [String, Number],
-    default: '100%'
-  }
+    height: {
+        type: [String, Number],
+        default: '100%'
+    }
 })
-console.log(props.height,'props.height')
+console.log(props.height, 'props.height')
 const inputValue = ref('');
 const loading = ref(false);
 const messages = ref([] as any[]);
@@ -43,11 +43,13 @@ const currentChatId = ref(null)
 const modelName = ref("qwen72")
 const needRefreshHistoryList = ref(false); // 用于标记是否需要刷新聊天记录列表
 const modelList = ref([] as any[]); // 模型列表
+const stream = ref(true); // 是否开启流式响应
 provide('messages', messages)
 provide('currentChatId', currentChatId);
 provide('modelName', modelName);
 provide('needRefreshHistoryList', needRefreshHistoryList)
 provide('modelList', modelList); // 提供模型列表
+provide('stream', stream); // 提供流式响应状态
 onMounted(async () => {
     // 获取模型列表
     const res = await getModelListApi();
@@ -58,29 +60,81 @@ onMounted(async () => {
     modelList.value = res.data; // 设置模型列表
     console.log('模型列表:', modelList.value);
 });
+
+function onChunk(chunk, fullText) {
+    console.log('Received chunk:', chunk);
+    // 这里可以处理接收到的 chunk 数据
+    console.log('Full text:', fullText);
+    // 例如，将 chunk 添加到消息列表中
+    // 删除最后一个元素
+    messages.value = messages.value.slice(0, -1);
+    // 添加新的 assistant 消息
+    messages.value = [
+        ...messages.value,
+        { role: 'assistant', content: fullText, type: 'text' }
+    ];
+}
+function onComplete() {
+    console.log('Stream completed');
+    loading.value = false; // 重置加载状态
+    inputValue.value = ''; // 清空输入框
+    messageApi.success('消息发送成功');
+}
 async function sendMsg() {
+    if (loading.value) {
+        return; // 如果正在加载，则不发送新消息
+    }
     if (inputValue.value.trim() === '') {
         return;
     }
     loading.value = true; // 设置加载状态
+    if (stream.value) {
+        // 这里可以添加发送消息的逻辑
+        try {
+            messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }, { role: 'assistant', content: '', type: 'text' }]; // 更新消息列表
 
-    // 这里可以添加发送消息的逻辑
-    const res = await sendMessageApi({ messages:[...messages.value, { role: 'user', content: inputValue.value,type:'text' }],chatId:currentChatId.value,modelName:modelName.value });
-    if (res.status !== 200) {
-        messageApi.error('发送消息失败:');
-        loading.value = false; // 重置加载状态
+            await chatStreamApi({
+                messages: [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }],
+                chatId: currentChatId.value,
+                modelName: modelName.value,
+                onChunk,
+                onComplete
+            });
+        } catch (error) {
+            console.error('发送消息失败:', error);
+            messageApi.error('发送消息失败');
+            loading.value = false; // 重置加载状态
+            return;
+        }
+
+
         return;
     }
-    if (currentChatId.value === null) {
-        // 如果当前聊天 ID 为空，则设置为返回的 chatId
-        currentChatId.value = res.data.chatId;
-        needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
+    else {
+        // 这里可以添加发送消息的逻辑
+        const res = await chatApi({
+            messages: [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }],
+            chatId: currentChatId.value,
+            modelName: modelName.value,
+            stream: false // 关闭流式响应
+        });
+        if (res.status !== 200) {
+            messageApi.error('发送消息失败:');
+            loading.value = false; // 重置加载状态
+            return;
+        }
+        if (currentChatId.value === null) {
+            // 如果当前聊天 ID 为空，则设置为返回的 chatId
+            currentChatId.value = res.data.chatId;
+            needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
+        }
+
+        messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }, { role: 'assistant', content: res.data.message, type: 'text' }]; // 更新消息列表
+        console.log('发送结果:', res);
+        console.log('发送消息:', inputValue.value);
+        inputValue.value = ''; // 清空输入框
     }
 
-    messages.value = [...messages.value, { role: 'user', content: inputValue.value,type:'text' }, {role: 'assistant',content:res.data.message,type:'text'}]; // 更新消息列表
-    console.log('发送结果:', res);
-    console.log('发送消息:', inputValue.value);
-    inputValue.value = ''; // 清空输入框
 
 }
 </script>

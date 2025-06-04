@@ -13,16 +13,16 @@
                 <template #expandIcon="{ isActive }">
                     <div class="StepsHeader" style="display:flex;align-items: center;">
                         <a-spin v-if="currentStep?.status == 'running'" size="small"></a-spin>
-                        <a-result v-if="currentStepIndex == steps.length - 1 && currentStep?.status == 'completed'"
+                        <a-result v-if="currentStepIndex == pipelines.length - 1 && currentStep?.status == 'completed'"
                             status="success"></a-result>
                         <!-- <caret-right-outlined :rotate="isActive ? 90 : 0" style="margin-right: 10px;" /> -->
                         <span style="font-size: 14px;margin-left: 10px;color: #7a7a7a;">{{ currentStep?.name ?? '未知错误'
                             }}</span>
                     </div>
                 </template>
-                <a-collapse-panel key="1" :style="'background: #fff;border-radius: 4px;border: 0;overflow: hidden'" v-if="steps.length > 0">
+                <a-collapse-panel key="1" :style="'background: #fff;border-radius: 4px;border: 0;overflow: hidden'" v-if="pipelines.length > 0">
                     <a-steps style="min-width: 500px;padding-left:10px;padding-top: 10px;;" size="small"
-                        :current="currentStepIndex" :items="props.steps.map(item => ({ title: item.name }))"></a-steps>
+                        :current="currentStepIndex" :items="pipelines.map(item => ({ title: item.name }))"></a-steps>
                 </a-collapse-panel>
             </a-collapse>
 
@@ -36,25 +36,35 @@
 <script lang="ts" setup>
 import AvatarImg from './avatar.jpg';
 import RobotImg from './robot.jpg';
-import { computed, ref, watch, withDefaults } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, withDefaults } from 'vue';
 import { marked } from 'marked'; // 引入 marked 库
 import type { Step } from './type';
 import { CaretRightOutlined } from '@ant-design/icons-vue';
+import { getPipelinesApi } from './aichat_api';
 
+const activeKey = ref<string[]>([]);
+const currentStepIndex = computed(() => {
+    return pipelines.value.findIndex(item => item.status != 'completed')
+});
+const currentStep = computed(() => {
+    return currentStepIndex.value != -1 ? pipelines.value[currentStepIndex.value] : null
+});
+const avatar = computed(() => {
+    return props.role === 'user' ? AvatarImg : RobotImg; // 如果是用户角色，返回空字符串，否则返回默认头像
+});
 const props = withDefaults(defineProps<{
     role?: 'user' | 'assistant';
     content?: string;
     time?: string;
     userName?: string;
     modelName?: string;
-    steps?: Step[];
+    queryId:number
 }>(), {
     role: 'user',
     content: '**空内容**',
     time: new Date().toLocaleTimeString(),
     userName: 'User',
     modelName: 'Qwen3',
-    steps: () => []
     //steps: () => [{ id: 0, name: '示例步骤1', content: '这是一个示例步骤', status: 'completed' }, { id: 1, name: '示例步骤2', content: '这是一个示例步骤2', status: 'running' }, { id: 0, name: '示例步骤3', content: '这是一个示例步骤3', status: 'not-started' }]
 });
 watch(() => props, (newContent) => {
@@ -62,9 +72,41 @@ watch(() => props, (newContent) => {
 }, { immediate: true }); // 立即执行一次
 
 
-
-
-
+const pipelines = ref<Step[]>([]); // 用于存储管道步骤
+let intervalId: any = null; // 用于存储定时器 ID
+watch(currentStep, (newStep) => {
+    console.log('当前步骤更新:', newStep);
+    if (newStep?.status !== 'completed' && newStep?.status !== 'failed' && newStep?.status !== 'cancelled') {
+        intervalId=setInterval(() => {
+            // 每隔 1 秒检查当前步骤状态
+            getPipelinesApi({ queryId: props.queryId }).then(res => {
+                if (res.status === 200) {
+                    pipelines.value = res.data || [];
+                } else {
+                    console.error('获取管道步骤失败:', res);
+                }
+            });
+        }, 500);
+    } else {
+        clearInterval(intervalId); // 清除定时器
+        intervalId = null; // 重置定时器 ID
+    }
+}, { immediate: true }); // 立即执行一次
+onMounted(async () => {
+    // 在组件挂载时可以进行一些初始化操作
+    const res = await getPipelinesApi({ queryId: props.queryId });
+    if (res.status !== 200) {
+        console.error('获取管道步骤失败:', res);
+        return;
+    }
+    pipelines.value = res.data || [];
+});
+onBeforeUnmount(() => {
+    if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+    }
+});
 // 使用 computed 属性来生成渲染后的 Markdown 内容
 const renderedContent = computed(() => {
   const content = props.content || '';
@@ -76,16 +118,7 @@ const renderedContent = computed(() => {
 
   return marked.parse(content);
 });
-const activeKey = ref<string[]>(['0']);
-const currentStepIndex = computed(() => {
-    return props.steps.findIndex(item => item.status != 'completed')
-});
-const currentStep = computed(() => {
-    return currentStepIndex.value != -1 ? props.steps[currentStepIndex.value] : null
-});
-const avatar = computed(() => {
-    return props.role === 'user' ? AvatarImg : RobotImg; // 如果是用户角色，返回空字符串，否则返回默认头像
-});
+
 </script>
 <style lang="scss">
 @import './markdown.css';
