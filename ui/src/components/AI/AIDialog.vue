@@ -2,6 +2,9 @@
   <div class="ai-dialog-container">
     <a-modal v-model:open="open" width="80vw" style="height: 80vh" :wrapStyle="{ top: '-50px' }" @ok="open=false">
       <AIChat ></AIChat>
+      <template #footer>
+        <!-- <a-button key="submit" type="primary" @click="open=false">关闭</a-button> -->
+      </template>
     </a-modal>
     <a-float-button
         type="primary"

@@ -196,7 +196,7 @@ async function sendMsg() {
     min-height: 80px;
     max-height: 200px;
     position: absolute;
-    top: v-bind("currentChatId ? '80%' : '50%'");
+    top: v-bind("currentChatId ? '78%' : '50%'");
     width: 800px;
     height: fit-content;
     left: 50%;
