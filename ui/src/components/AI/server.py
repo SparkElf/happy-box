@@ -384,6 +384,7 @@ def chatController():
         message = messages[-1]
         conn = get_db_connection()
         cursor = conn.cursor()
+        title = None
         if not chat_id:
             model_name = data['modelName']
             title = message['content'][:10] if 'content' in message else '无标题'
@@ -424,8 +425,9 @@ def chatController():
                 nonlocal cursor
                 nonlocal sql_query_result
                 nonlocal chat_id
+                nonlocal response_id
                 try:
-                    yield json.dumps({'type':tool['type'],'sqlQueryResult':sql_query_result,'chatId':chat_id})
+                    yield json.dumps({'type':tool['type'],'sqlQueryResult':sql_query_result,'chatId':chat_id,'responseId':response_id})
 
                     for chunk in response['content']:
                         print(chunk)

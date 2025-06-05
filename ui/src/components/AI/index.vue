@@ -64,11 +64,14 @@ let chunkCnt = 0;
 const currentChatType = ref('chat') // 当前聊天类型
 const sqlQueryResult = ref() // SQL查询结果
 let startChat = false
+let responseId = null
 function clearChunkResult() {
     chunkCnt = 0;
     sqlQueryResult.value = null;
     currentChatType.value = 'chat';
     startChat = false
+    responseId = null
+
 }
 function onChunk(chunk, fullText) {
     console.log('Received chunk:', chunk);
@@ -78,6 +81,7 @@ function onChunk(chunk, fullText) {
 
         currentChatType.value = meta.type
         sqlQueryResult.value = meta.sqlQueryResult
+        responseId = meta.responseId
         if (currentChatId.value === null) {
             // 如果当前聊天 ID 为空，则设置为返回的 chatId
             currentChatId.value = parseInt(meta.chatId);
@@ -102,13 +106,13 @@ function onChunk(chunk, fullText) {
     // 添加新的 assistant 消息
     messages.value = [
         ...messages.value,
-        { role: 'assistant', content: fullText, type: 'text' }
+        { role: 'assistant', content: fullText, type: 'text',id:responseId }
     ];
     }
     else {
         messages.value = [
             ...messages.value,
-            { role: 'assistant', content: fullText, type: 'text' }
+            { role: 'assistant', content: fullText, type: 'text',id:responseId }
         ];
     }
 
