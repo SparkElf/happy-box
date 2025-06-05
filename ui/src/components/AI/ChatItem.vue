@@ -17,6 +17,7 @@
 <!--                        <a-result style="font-size: 12px;"-->
 <!--                            status="success" size="small"></a-result>-->
 <!--                         <caret-right-outlined :rotate="isActive ? 90 : 0" style="margin-right: 10px;" />-->
+                         <CheckmarkAnimation v-if="currentStepIndex == pipelines.length-1"/>
                         <span style="font-size: 14px;margin-left: 10px;color: #7a7a7a;">{{ currentStep?.name ?? '未知错误'
                             }}</span>
                     </div>
@@ -30,7 +31,6 @@
         </div>
         <div class="Content">
             <span class="Text markdown-body " data-theme="light" v-html="renderedContent"></span>
-            <!-- <div class="Time">{{ time }}</div> -->
         </div>
     </div>
 </template>
@@ -42,14 +42,15 @@ import { marked } from 'marked'; // 引入 marked 库
 import type { Step } from './type';
 import { CaretRightOutlined } from '@ant-design/icons-vue';
 import { getPipelinesApi } from './aichat_api';
+import CheckmarkAnimation from './CheckmarkAnimation.vue'
 
 const activeKey = ref<string[]>([]);
 const currentStepIndex = computed(() => {
-    let index = pipelines.value.findIndex(item => { return item.status == 'running'})
+    let index = pipelines.value.findIndex(item => { return item.status != 'completed'})
     if (index == -1) {
       if (intervalId) {
         clearInterval(intervalId);
-        intervalId = null;
+        intervalId.value = null;
       }
     }
     return index == -1 ? pipelines.value.length - 1 : index
@@ -97,6 +98,7 @@ watch(currentStep, (newStep) => {
     if (newStep?.status !== 'completed' && newStep?.status !== 'failed' && newStep?.status !== 'cancelled') {
         intervalId.value=setInterval(() => {
             // 每隔 1 秒检查当前步骤状态
+
             getPipelinesApi({ queryId: props.queryId }).then(res => {
                 if (res.status === 200) {
                     pipelines.value = res.data || [];
@@ -104,7 +106,7 @@ watch(currentStep, (newStep) => {
                     console.error('获取管道步骤失败:', res);
                 }
             });
-        }, 500);
+        }, 1000);
     } else {
         clearInterval(intervalId.value); // 清除定时器
         intervalId.value = null; // 重置定时器 ID
