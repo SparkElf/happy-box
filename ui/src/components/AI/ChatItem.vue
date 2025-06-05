@@ -86,6 +86,7 @@ watch(() => props, (newContent) => {
 
 const pipelines = ref<Step[]>([]); // 用于存储管道步骤
 let intervalId: any = null; // 用于存储定时器 ID
+
 watch(currentStep, (newStep) => {
     console.log('当前步骤更新:', newStep);
     if(!props.last) {

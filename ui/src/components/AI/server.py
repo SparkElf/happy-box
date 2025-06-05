@@ -428,13 +428,14 @@ def chatController():
                 nonlocal response_id
                 try:
                     yield json.dumps({'type':tool['type'],'sqlQueryResult':sql_query_result,'chatId':chat_id,'responseId':response_id})
-
+                    updatePipeline(conn, response_id, "生成回复", "completed")
                     for chunk in response['content']:
                         print(chunk)
                         content=chunk.choices[0].delta.content
                         if content:
                             full_content += content
                             yield content
+
                 except Exception as e:
                     print(f"Error during streaming: {e}")
                     conn.rollback()
@@ -498,7 +499,7 @@ def getPipelineListController():
         return jsonify({'error': '缺少queryId参数'}), 400
     query_id = data['queryId']
     try:
-        pipelines = queryDB("SELECT * FROM aichat_pipeline WHERE query_id = %s ORDER BY seq", (int(query_id),))
+        pipelines = queryDB("SELECT * FROM aichat_pipeline WHERE response_id = %s ORDER BY seq", (int(query_id),))
         if not pipelines:
             pipelines = []
         return jsonify(pipelines)
