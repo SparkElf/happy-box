@@ -5,6 +5,7 @@
             <div v-if="role === 'user'" class="UserName">{{ userName }}</div>
             <div v-else class="UserName">机器人</div>
             <div v-if="role === 'assistant'" class="BotIcon">🤖</div>
+
             <el-tag round v-if="role === 'assistant'" class="ModelName" style="margin-left: 10px">{{ modelName
                 }}</el-tag>
         </div>
@@ -12,12 +13,14 @@
             <a-collapse v-model:activeKey="activeKey" :bordered="false" style="background: rgb(255, 255, 255)">
                 <template #expandIcon="{ isActive }">
                     <div class="StepsHeader" style="display:flex;align-items: center;">
-                        <a-spin v-if="currentStep?.status == 'running'" size="small"></a-spin>
-                        <a-result v-if="currentStepIndex == pipelines.length - 1 && currentStep?.status == 'completed'"
-                            status="success"></a-result>
-                        <!-- <caret-right-outlined :rotate="isActive ? 90 : 0" style="margin-right: 10px;" /> -->
+                        <a-spin  size="small"></a-spin>
+<!--                        <a-result style="font-size: 12px;"-->
+<!--                            status="success" size="small"></a-result>-->
+<!--                         <caret-right-outlined :rotate="isActive ? 90 : 0" style="margin-right: 10px;" />-->
                         <span style="font-size: 14px;margin-left: 10px;color: #7a7a7a;">{{ currentStep?.name ?? '未知错误'
                             }}</span>
+
+                        <div>{{props.last}}</div>
                     </div>
                 </template>
                 <a-collapse-panel key="1" :style="'background: #fff;border-radius: 4px;border: 0;overflow: hidden'" v-if="pipelines.length > 0">
@@ -44,7 +47,14 @@ import { getPipelinesApi } from './aichat_api';
 
 const activeKey = ref<string[]>([]);
 const currentStepIndex = computed(() => {
-    return pipelines.value.findIndex(item => item.status != 'completed')
+    let index = pipelines.value.findIndex(item => { return item.status == 'running'})
+    if (index == -1) {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+    return index == -1 ? pipelines.value.length - 1 : index
 });
 const currentStep = computed(() => {
     return currentStepIndex.value != -1 ? pipelines.value[currentStepIndex.value] : null
@@ -58,7 +68,8 @@ const props = withDefaults(defineProps<{
     time?: string;
     userName?: string;
     modelName?: string;
-    queryId:number
+    queryId:number;
+    last: boolean;
 }>(), {
     role: 'user',
     content: '**空内容**',
@@ -67,6 +78,7 @@ const props = withDefaults(defineProps<{
     modelName: 'Qwen3',
     //steps: () => [{ id: 0, name: '示例步骤1', content: '这是一个示例步骤', status: 'completed' }, { id: 1, name: '示例步骤2', content: '这是一个示例步骤2', status: 'running' }, { id: 0, name: '示例步骤3', content: '这是一个示例步骤3', status: 'not-started' }]
 });
+console.log(props,'props')
 watch(() => props, (newContent) => {
     console.log('内容更新:', newContent);
 }, { immediate: true }); // 立即执行一次
@@ -76,6 +88,9 @@ const pipelines = ref<Step[]>([]); // 用于存储管道步骤
 let intervalId: any = null; // 用于存储定时器 ID
 watch(currentStep, (newStep) => {
     console.log('当前步骤更新:', newStep);
+    if(!props.last) {
+      return
+    }
     if (newStep?.status !== 'completed' && newStep?.status !== 'failed' && newStep?.status !== 'cancelled') {
         intervalId=setInterval(() => {
             // 每隔 1 秒检查当前步骤状态
@@ -93,13 +108,15 @@ watch(currentStep, (newStep) => {
     }
 }, { immediate: true }); // 立即执行一次
 onMounted(async () => {
-    // 在组件挂载时可以进行一些初始化操作
-    const res = await getPipelinesApi({ queryId: props.queryId });
-    if (res.status !== 200) {
+    if(props.last) {
+      // 在组件挂载时可以进行一些初始化操作
+      const res = await getPipelinesApi({ queryId: props.queryId });
+      if (res.status !== 200) {
         console.error('获取管道步骤失败:', res);
         return;
+      }
+      pipelines.value = res.data || [];
     }
-    pipelines.value = res.data || [];
 });
 onBeforeUnmount(() => {
     if (intervalId) {
