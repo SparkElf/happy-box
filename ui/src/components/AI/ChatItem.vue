@@ -13,14 +13,12 @@
             <a-collapse v-model:activeKey="activeKey" :bordered="false" style="background: rgb(255, 255, 255)">
                 <template #expandIcon="{ isActive }">
                     <div class="StepsHeader" style="display:flex;align-items: center;">
-                        <a-spin  size="small"></a-spin>
+                        <a-spin  size="small" v-if="currentStepIndex != pipelines.length-1"></a-spin>
 <!--                        <a-result style="font-size: 12px;"-->
 <!--                            status="success" size="small"></a-result>-->
 <!--                         <caret-right-outlined :rotate="isActive ? 90 : 0" style="margin-right: 10px;" />-->
                         <span style="font-size: 14px;margin-left: 10px;color: #7a7a7a;">{{ currentStep?.name ?? '未知错误'
                             }}</span>
-
-                        <div>{{props.last}}</div>
                     </div>
                 </template>
                 <a-collapse-panel key="1" :style="'background: #fff;border-radius: 4px;border: 0;overflow: hidden'" v-if="pipelines.length > 0">
