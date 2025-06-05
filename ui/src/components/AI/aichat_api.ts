@@ -40,7 +40,7 @@ export async function getAiChatBaseInfoApi({ chatId }) {
   return request.post("/getAiChatBaseInfo", { chatId: chatId });
 }
 export async function getPipelinesApi({queryId}) {
-  return request.post("/getPipelines",{queryId:queryId});
+  return request.post("/getPipelineList",{queryId:queryId});
 }
 // streamClient.js
 export async function fetchStream(url, options, onChunk, onComplete) {
