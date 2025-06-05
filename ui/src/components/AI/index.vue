@@ -40,7 +40,7 @@ const inputValue = ref('');
 const loading = ref(false);
 const messages = ref([] as any[]);
 const currentChatId = ref(null)
-const modelName = ref("qwen72")
+const modelName = ref("未知模型")
 const needRefreshHistoryList = ref(false); // 用于标记是否需要刷新聊天记录列表
 const modelList = ref([] as any[]); // 模型列表
 const stream = ref(true); // 是否开启流式响应
@@ -60,24 +60,62 @@ onMounted(async () => {
     modelList.value = res.data; // 设置模型列表
     console.log('模型列表:', modelList.value);
 });
-
+let chunkCnt = 0;
+const currentChatType = ref('chat') // 当前聊天类型
+const sqlQueryResult = ref() // SQL查询结果
+let startChat = false
+function clearChunkResult() {
+    chunkCnt = 0;
+    sqlQueryResult.value = null;
+    currentChatType.value = 'chat';
+    startChat = false
+}
 function onChunk(chunk, fullText) {
     console.log('Received chunk:', chunk);
+    chunkCnt++;
+    if (chunkCnt === 1) {
+        const meta = JSON.parse(chunk)
+
+        currentChatType.value = meta.type
+        sqlQueryResult.value = meta.sqlQueryResult
+        if (currentChatId.value === null) {
+            // 如果当前聊天 ID 为空，则设置为返回的 chatId
+            currentChatId.value = parseInt(meta.chatId);
+            needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
+        }
+        console.log('当前聊天类型:', currentChatType.value);
+        return
+    }
+
+
+    if (startChat==false) {
+        messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }]
+        inputValue.value = ''
+        startChat=true
+    }
     // 这里可以处理接收到的 chunk 数据
     console.log('Full text:', fullText);
     // 例如，将 chunk 添加到消息列表中
-    // 删除最后一个元素
+    if (messages.value[messages.value.length - 1].role === 'assistant') {
+         // 删除最后一个元素
     messages.value = messages.value.slice(0, -1);
     // 添加新的 assistant 消息
     messages.value = [
         ...messages.value,
         { role: 'assistant', content: fullText, type: 'text' }
     ];
+    }
+    else {
+        messages.value = [
+            ...messages.value,
+            { role: 'assistant', content: fullText, type: 'text' }
+        ];
+    }
+
 }
 function onComplete() {
     console.log('Stream completed');
     loading.value = false; // 重置加载状态
-    inputValue.value = ''; // 清空输入框
     messageApi.success('消息发送成功');
 }
 async function sendMsg() {
@@ -87,12 +125,16 @@ async function sendMsg() {
     if (inputValue.value.trim() === '') {
         return;
     }
+    if (modelName.value === "未知模型") {
+        messageApi.error('请选择模型');
+        return;
+    }
     loading.value = true; // 设置加载状态
     if (stream.value) {
         // 这里可以添加发送消息的逻辑
         try {
-            messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }, { role: 'assistant', content: '', type: 'text' }]; // 更新消息列表
-
+            //messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }, { role: 'assistant', content: '', type: 'text' }]; // 更新消息列表
+            clearChunkResult();
             await chatStreamApi({
                 messages: [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }],
                 chatId: currentChatId.value,

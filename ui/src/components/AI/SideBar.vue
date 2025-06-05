@@ -17,7 +17,7 @@
             </a-input>
         </div>
         <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed"
-            style="background-color: transparent; border: none;" >
+            style="background-color: transparent; border: none; overflow-y: auto; max-height: 60vh;" >
             <template v-for="item in filteredChatHistoryList" :key="item.chatId">
                 <a-menu-item @click="currentChatId = item.chatId">
                     <span>{{ item.title || '无标题' }}</span>

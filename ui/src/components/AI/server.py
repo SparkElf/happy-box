@@ -1,3 +1,4 @@
+
 from turtle import update
 from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
@@ -98,12 +99,13 @@ def initPipeline( model_name,messages,response_id,conn):
         raise Exception("初始化管道失败")
 # pipeline的seq是从1开始的
 def initToolPipeline(type, model_name,messages,response_id,conn):
+
     lastPipelineSeq = queryDB("SELECT MAX(seq) as maxseq FROM aichat_pipeline WHERE response_id = %s", (response_id,))
     if lastPipelineSeq and lastPipelineSeq[0]['maxseq']:
         lastPipelineSeq = lastPipelineSeq[0]['maxseq']
     else:
         lastPipelineSeq = 0
-
+    pipelines=[]
     if type == 'sql':
         pipelines += [(response_id, "", "not-started","生成SQL查询"),(response_id, "", "not-started","执行SQL查询")]
     pipelines += [(response_id, "", "not-started","生成回复")]
@@ -115,11 +117,38 @@ def initToolPipeline(type, model_name,messages,response_id,conn):
         print(f"Error initializing pipeline: {e}")
         raise Exception("初始化管道失败")
 
+
 def sqlToolExecutor(messages, model_name, response_id, conn):
     updatePipeline(conn, response_id, "生成SQL查询", "running")
-    updatePipeline(conn, response_id, "生成SQL查询", "completed")
-    updatePipeline(conn, response_id, "执行SQL查询", "running")
+    context = dify_examplesql_knowledge_retrieval(messages[-1]['content'])
+    example='[{"sql","select field from table where condition","title":"查询示例"}]'
+    database='mysql'
+    query =f"""
+指令：
+你是一个{database}数据库的数据分析专家,请根据知识库内容和用户提问,分解问题为若干sql查询任务
+1.你的最终输出为一个数组,不包含其他解释说明的文字.数组的示例为:{example},数组对象内容包括sql查询和对应的解释标题,标题不超过10个字.
+2.对今日、本周、去年等非指定时间应该采用数据库函数计算得到,且对于今日、本周、本月等非显示指定的时间段词语需同时考虑左右时间范围
+3.sql应符合{database}语法规范.
+4.如果知识库提到该表存在重复数据,要参考知识库内容对查询结果去重.
+5.输出的结果要根据最合适的业务时间字段进行排序.
+6.你的输出应该只包含查询类型的sql,不包含修改、删除、表结构操作、数据库操作、授权等其他类型的sql.
+
+知识库内容:
+{context}
+
+用户提问:
+{messages}
+    """
+    sqlQueryText=modelService(model_name, query)
+    sqlQueries=json.loads(sqlQueryText)
+    updatePipeline(conn, response_id, "生成SQL查询", "completed",sqlQueryText)
+    updatePipeline(conn, response_id, "执行SQL查询", "running",sqlQueryText)
+    result={}
+    for sqlQuery in sqlQueries:
+        sql = sqlQuery['sql']
+        result[sqlQuery['title']] = queryDB(sql)
     updatePipeline(conn, response_id, "执行SQL查询", "completed")
+    return result
 def insertPipeline(conn,response_id, name,status,content=""):
     try:
         with conn.cursor() as cursor:
@@ -177,6 +206,71 @@ def delPipelineByResponseIdAndName(response_id,conn,name=None):
         print(f"Error deleting pipeline: {e}")
         raise Exception("删除管道失败")
 
+import requests
+import json
+
+
+def dify_knowledge_retrieval(api_key, dataset_id, query, search_method="semantic_search",
+                             reranking_enable=False, reranking_mode=None,
+                             reranking_provider_name="", reranking_model_name="",
+                             top_k=1, score_threshold_enabled=False, score_threshold=None,
+                             base_url="http://localhost/v1"):
+    """
+    调用 Dify 知识库检索接口，执行检索操作。
+
+    :param api_key: str - Dify API Key [[2]]
+    :param dataset_id: str - 知识库 ID [[6]]
+    :param query: str - 用户输入的查询内容 [[1]]
+    :param search_method: str - 搜索方法，可选: keyword_search / semantic_search / full_text_search [[1]]
+    :param reranking_enable: bool - 是否启用重排序 [[7]]
+    :param reranking_mode: str - 重排序模式，如 "reranking_model" [[7]]
+    :param reranking_provider_name: str - 重排序模型提供者名称（如 xinference）[[7]]
+    :param reranking_model_name: str - 重排序模型名称（如 bge-reranker-large）[[7]]
+    :param top_k: int - 返回最相关的前 K 条结果 [[4]]
+    :param score_threshold_enabled: bool - 是否启用相似度阈值过滤 [[4]]
+    :param score_threshold: float - 相似度阈值 [[4]]
+    :param base_url: str - Dify API 的基础 URL，默认为本地服务 [[2]]
+    :return: list - 检索结果列表，包含 content、score、source 等信息
+    """
+
+    url = f"{base_url}/datasets/{dataset_id}/retrieve"
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "query": query,
+        "retrieval_model": {
+            "search_method": search_method,
+            "reranking_enable": reranking_enable,
+            "reranking_mode": reranking_mode,
+            "reranking_model": {
+                "reranking_provider_name": reranking_provider_name,
+                "reranking_model_name": reranking_model_name
+            },
+            "top_k": top_k,
+            "score_threshold_enabled": score_threshold_enabled,
+            "score_threshold": score_threshold
+        }
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response.raise_for_status()
+        response=response.json().get("records", [])
+        if response:
+            return response[0]['segment']['content']
+        else:
+            return None
+        return   # 假设返回字段为 records [[4]]
+    except requests.exceptions.RequestException as e:
+        print(f"请求失败: {e}")
+        return []
+
+def dify_examplesql_knowledge_retrieval(query):
+    return dify_knowledge_retrieval("dataset-jtJUR3S6p8MKebd7oo9cCThq","dee1ce34-c411-469f-869a-a7078ced5961",query)
 
 @app.route('/getAiChatBaseInfo', methods=['POST'])
 def getAiChatBaseInfoController():
@@ -198,6 +292,7 @@ def getAiChatBaseInfoController():
             responses_dict[response['queryId']].append(response)
         for query in queries:
             message = {
+                'id': query['id'],
                 'role': 'user',
                 'content': query['query'],
                 'type': query.get('type', 'text'),
@@ -207,6 +302,7 @@ def getAiChatBaseInfoController():
             if query['id'] in responses_dict:
                 for response in responses_dict[query['id']]:
                     message = {
+                        'id': response['id'],
                         'role': 'assistant',
                         'content': response['content'],
                         'type': response.get('type', 'text'),
@@ -306,7 +402,7 @@ def chatController():
                         (chat_id, message['content'], message.get('type', 'text')))
         query_id = cursor.lastrowid
         response_id = cursor.execute("INSERT INTO aichat_response (chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
-                            (chat_id, query_id, "", response.get('type', 'text'), model_name))
+                            (chat_id, query_id, "", "text", model_name))
         response_id = cursor.lastrowid
         initPipeline(model_name, messages, response_id, conn)
         if title:
@@ -316,8 +412,9 @@ def chatController():
         updatePipeline(conn, response_id, "选择工具", "running")
         tool = toolSelection(messages, model_name)
         initToolPipeline(tool['type'], model_name, messages, response_id, conn)
+        sql_query_result ={}
         if tool['type'] == 'sql':
-            sqlToolExecutor(messages, model_name, response_id, conn)
+            sql_query_result=sqlToolExecutor(messages, model_name, response_id, conn)
         response = modelService(model_name, messages,stream=stream)
         full_content = ""
         if stream:
@@ -325,7 +422,11 @@ def chatController():
                 print(response)
                 nonlocal full_content
                 nonlocal cursor
+                nonlocal sql_query_result
+                nonlocal chat_id
                 try:
+                    yield json.dumps({'type':tool['type'],'sqlQueryResult':sql_query_result,'chatId':chat_id})
+
                     for chunk in response['content']:
                         print(chunk)
                         content=chunk.choices[0].delta.content
