@@ -83,15 +83,19 @@ watch(() => props, (newContent) => {
 
 
 const pipelines = ref<Step[]>([]); // 用于存储管道步骤
-let intervalId: any = null; // 用于存储定时器 ID
-
+const  intervalId: any = ref(null); // 用于存储定时器 ID
+watch(intervalId, (newv, oldv) => {
+    if (newv != oldv) {
+        clearInterval(oldv);
+    }
+},{immediate:true})
 watch(currentStep, (newStep) => {
     console.log('当前步骤更新:', newStep);
     if(!props.last) {
       return
     }
     if (newStep?.status !== 'completed' && newStep?.status !== 'failed' && newStep?.status !== 'cancelled') {
-        intervalId=setInterval(() => {
+        intervalId.value=setInterval(() => {
             // 每隔 1 秒检查当前步骤状态
             getPipelinesApi({ queryId: props.queryId }).then(res => {
                 if (res.status === 200) {
@@ -102,8 +106,8 @@ watch(currentStep, (newStep) => {
             });
         }, 500);
     } else {
-        clearInterval(intervalId); // 清除定时器
-        intervalId = null; // 重置定时器 ID
+        clearInterval(intervalId.value); // 清除定时器
+        intervalId.value = null; // 重置定时器 ID
     }
 }, { immediate: true }); // 立即执行一次
 onMounted(async () => {
@@ -119,8 +123,8 @@ onMounted(async () => {
 });
 onBeforeUnmount(() => {
     if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
+        clearInterval(intervalId.value);
+        intervalId.value = null;
     }
 });
 // 使用 computed 属性来生成渲染后的 Markdown 内容
