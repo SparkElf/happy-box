@@ -10,7 +10,8 @@
                     <ChatArea />
                 </a-layout-content>
                 <div class="InputBox">
-                    <a-textarea v-model:value="inputValue" placeholder="问我任何消息" :rows="4">
+                    <a-textarea v-model:value="inputValue" placeholder="问我任何消息" :rows="4"
+                      @keydown.enter.native="sendMsg">
                     </a-textarea>
                     <div class="ButtonGroup">
                         <SendIcon @click="sendMsg" />
@@ -64,19 +65,35 @@ let chunkCnt = 0;
 const currentChatType = ref('chat') // 当前聊天类型
 const sqlQueryResult = ref() // SQL查询结果
 let startChat = false
-let responseId = null
+let responseId:string = ''
+let firstChunkStr = ''
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+function waitChat() {
+  responseId = generateUUID();
+  messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }]
+  messages.value = [
+    ...messages.value,
+    { role: 'assistant', content: '', type: 'text', id:responseId, last:true }
+  ];
+}
 function clearChunkResult() {
     chunkCnt = 0;
     sqlQueryResult.value = null;
     currentChatType.value = 'chat';
     startChat = false
-    responseId = null
-
+    responseId = ''
 }
 function onChunk(chunk, fullText) {
     console.log('Received chunk:', chunk);
     chunkCnt++;
     if (chunkCnt === 1) {
+        firstChunkStr = chunk
         const meta = JSON.parse(chunk)
 
         currentChatType.value = meta.type
@@ -93,34 +110,36 @@ function onChunk(chunk, fullText) {
 
 
     if (startChat==false) {
-        messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }]
+        // messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }]
         inputValue.value = ''
         startChat=true
     }
     // 这里可以处理接收到的 chunk 数据
-    console.log('Full text:', fullText);
+    console.log('Full text:', fullText, firstChunkStr);
+    if(fullText.startsWith(firstChunkStr)) {
+      console.log('Full text:', fullText, firstChunkStr);
+      fullText = fullText.slice(firstChunkStr.length);
+    }
     // 例如，将 chunk 添加到消息列表中
     if (messages.value[messages.value.length - 1].role === 'assistant') {
          // 删除最后一个元素
-    messages.value = messages.value.slice(0, -1);
+    // messages.value = messages.value.slice(0, -1);
     // 添加新的 assistant 消息
-    messages.value = [
-        ...messages.value,
-        { role: 'assistant', content: fullText, type: 'text',id:responseId }
-    ];
+        messages.value[messages.value.length - 1].content = fullText
     }
-    else {
-        messages.value = [
-            ...messages.value,
-            { role: 'assistant', content: fullText, type: 'text',id:responseId }
-        ];
-    }
+    // else {
+    //     messages.value[messages.value.length - 1].content = fullText
+    // }
 
 }
+
 function onComplete() {
     console.log('Stream completed');
     loading.value = false; // 重置加载状态
     messageApi.success('消息发送成功');
+    messages.value.forEach((item, index) => {
+      item.last = index === messages.value.length -1
+    })
 }
 async function sendMsg() {
     if (loading.value) {
@@ -139,10 +158,20 @@ async function sendMsg() {
         try {
             //messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }, { role: 'assistant', content: '', type: 'text' }]; // 更新消息列表
             clearChunkResult();
+            waitChat()
+            console.log(responseId, '!!!!!!!!!!',{
+              messages: [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }],
+              chatId: currentChatId.value,
+              modelName: modelName.value,
+              responseId: responseId,
+              onChunk,
+              onComplete
+            })
             await chatStreamApi({
                 messages: [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }],
                 chatId: currentChatId.value,
                 modelName: modelName.value,
+                responseId: responseId,
                 onChunk,
                 onComplete
             });

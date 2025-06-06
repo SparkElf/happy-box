@@ -3,7 +3,7 @@
         <ChatItem v-for="(item, index) in messages" :role="item.role" v-if="currentChatId" :content="item.content"
             :model-name="item.modelName"
             :query-id="item.id"
-            :last="index==messages.length-1"
+            :last="item?.last"
              />
         <div class="Welcome" v-else
             style="display: flex; justify-content: center;align-items: center; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%)">
