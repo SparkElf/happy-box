@@ -524,6 +524,38 @@ def getPipelineListController():
     except Exception as e:
         return jsonify({'error': '未知错误,请联系管理员'}), 500
 
-
+@app.route('/deleteChat', methods=['POST'])
+def delete_chat():
+    data = request.get_json()
+    if not data or 'chatId' not in data:
+        return jsonify({'error': '缺少chatId参数'}), 400
+    chat_id = data['chatId']
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            # 查找所有 response_id
+            cursor.execute("SELECT id FROM aichat_response WHERE chat_id = %s", (chat_id,))
+            response_ids = [row['id'] for row in cursor.fetchall()]
+            # 删除 pipeline
+            if response_ids:
+                format_strings = ','.join(['%s'] * len(response_ids))
+                cursor.execute(f"DELETE FROM aichat_pipeline WHERE response_id IN ({format_strings})", tuple(response_ids))
+            # 删除 response
+            cursor.execute("DELETE FROM aichat_response WHERE chat_id = %s", (chat_id,))
+            # 删除 query
+            cursor.execute("DELETE FROM aichat_query WHERE chat_id = %s", (chat_id,))
+            # 删除 chat
+            cursor.execute("DELETE FROM aichat WHERE chat_id = %s", (chat_id,))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Error deleting chat: {e}")
+        return jsonify({'error': '删除失败', 'detail': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=15000, debug=True)

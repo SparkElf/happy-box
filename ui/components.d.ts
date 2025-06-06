@@ -42,6 +42,7 @@ declare module 'vue' {
     ChatArea: typeof import('./src/components/AI/ChatArea.vue')['default']
     ChatInterface: typeof import('./src/components/AIOld/ChatInterface.vue')['default']
     ChatItem: typeof import('./src/components/AI/ChatItem.vue')['default']
+    CheckmarkAnimation: typeof import('./src/components/AI/CheckmarkAnimation.vue')['default']
     Close: typeof import('./src/components/icons/Close.vue')['default']
     ElementUIColumn: typeof import('./src/components/Atom/Table/ElementUIColumn.vue')['default']
     Elf: typeof import('./src/components/icons/Elf.vue')['default']
