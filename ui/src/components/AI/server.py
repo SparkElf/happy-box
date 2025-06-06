@@ -74,7 +74,10 @@ def executeDB(sql, params=None, fetch=False):
         print(f"Database execute error: {e}")
         raise Exception("数据库操作失败")
 def toolSelection(messages, model_name):
-    prompt = "请根据对话记录判断用户当前是简单聊天还是需要执行SQL查询，返回结果为json格式,如果是简单聊天返回{'type':'chat'}，如果需要执行SQL查询返回{'type':'sql'}"
+    prompt = """请根据对话记录判断用户当前是简单聊天还是需要执行SQL查询.
+1.当用户询问的是如何查询时等只是涉及SQL的问题,但实际上不需要执行时,仍然属于简单聊天.
+2.返回结果为json格式,如果是简单聊天返回{'type':'chat'},如果需要执行SQL查询返回{'type':'sql'}
+"""
     query = messages+ [{'role': 'system', 'content': prompt}]
     response = modelService(model_name, query)
     if response['type'] == 'text':
@@ -123,7 +126,7 @@ def sqlToolExecutor(messages, model_name, response_id, conn):
     context = dify_examplesql_knowledge_retrieval(messages[-1]['content'])
     example='[{"sql","select field from table where condition","title":"查询示例"}]'
     database='mysql'
-    query =f"""
+    prompt =f"""
 指令：
 你是一个{database}数据库的数据分析专家,请根据知识库内容和用户提问,分解问题为若干sql查询任务
 1.你的最终输出为一个数组,不包含其他解释说明的文字.数组的示例为:{example},数组对象内容包括sql查询和对应的解释标题,标题不超过10个字.
@@ -136,16 +139,17 @@ def sqlToolExecutor(messages, model_name, response_id, conn):
 知识库内容:
 {context}
 
-用户提问:
-{messages}
     """
-    sqlQueryText=modelService(model_name, query)
+    query = messages+ [{'role': 'system', 'content': prompt}]
+    sqlQueryText=modelService(model_name, query)['content']
     sqlQueries=json.loads(sqlQueryText)
     updatePipeline(conn, response_id, "生成SQL查询", "completed",sqlQueryText)
     updatePipeline(conn, response_id, "执行SQL查询", "running",sqlQueryText)
     result={}
     for sqlQuery in sqlQueries:
         sql = sqlQuery['sql']
+        if '?' in sql:
+             raise Exception("查询问题未包含足够的参数,请补充相关参数!")
         result[sqlQuery['title']] = queryDB(sql)
     updatePipeline(conn, response_id, "执行SQL查询", "completed")
     return result
