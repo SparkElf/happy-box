@@ -67,14 +67,18 @@ function onSearch() {
     // 这里可以扩展为远程搜索，当前为本地过滤
 }
 
+
+let curUserId = 1
 function delChat(chatId: string) {
     console.log('del!!!!!!!!!!!!!!!!!!!!!!',chatId)
-    delChatApi({chatId}).then(() => {})
+    delChatApi({chatId}).then(() => {
+      getChatHistoryListApi({userId: curUserId})
+    })
 }
 
 async function getChatHistoryList() {
     // 假设 userId 为 1，实际可根据登录用户动态获取
-    const userId = 1;
+    const userId = curUserId;
     try {
         const res = await getChatHistoryListApi({ userId });
         if (Array.isArray(res.data)) {

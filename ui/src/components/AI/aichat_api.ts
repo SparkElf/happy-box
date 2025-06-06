@@ -30,7 +30,7 @@ export async function getChatHistoryListApi({ userId }) {
 
 
 export async function delChatApi({ chatId }) {
-  return request.post("/delChat", { chatId: chatId });
+  return request.post("/deleteChat", { chatId: chatId });
 }
 
 export async function getModelListApi() {
