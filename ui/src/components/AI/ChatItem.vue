@@ -31,7 +31,7 @@
         </div>
         <div class="Content">
             <div class="table-title">{{tableName}}</div>
-            <a-table style="margin-bottom: 10px;" :scroll="{ y: 150 }"  width="500px" :dataSource="dataSoucre" :columns="columns" v-if="Object.keys(props.sqlQueryResult).length>0 && role === 'assistant'" :pagination="false"/>
+            <a-table style="margin-bottom: 10px;" :scroll="{ y: 150 }"   :dataSource="dataSoucre" :columns="columns" v-if="Object.keys(props.sqlQueryResult).length>0 && role === 'assistant'" :pagination="false"/>
             <span class="Text markdown-body " data-theme="light" v-html="renderedContent"></span>
         </div>
     </div>
@@ -107,7 +107,8 @@ const columns = computed(()=> {
     return Object.keys(sampleRecord).map(key => ({
       title: key.toUpperCase(),   // A, B...
       dataIndex: key,
-      key: key
+      key: key,
+      width: 150
     }));
 })
 
