@@ -22,7 +22,9 @@
                 <a-menu-item  >
                     <div style="display: flex;justify-content: space-between;align-items: center">
                     <span class="ellipsis-span" @click="currentChatId = item.chatId"> {{ item.title || '无标题' }}</span>
-                    <DeleteOutlined class="del-icon" @click.stop="delChat(item.chatId)" />
+                    <a-popconfirm title="确认删除?" ok-text="确认" cancel-text="取消" @confirm="delChat(item.chatId)" >
+                      <DeleteOutlined class="del-icon"  />
+                    </a-popconfirm>
                     </div>
                 </a-menu-item>
             </template>
@@ -70,9 +72,8 @@ function onSearch() {
 
 let curUserId = 1
 function delChat(chatId: string) {
-    console.log('del!!!!!!!!!!!!!!!!!!!!!!',chatId)
     delChatApi({chatId}).then(() => {
-      getChatHistoryListApi({userId: curUserId})
+      getChatHistoryList()
     })
 }
 

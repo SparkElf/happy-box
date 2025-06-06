@@ -3,7 +3,7 @@
         <div class="Avatar">
             <img :src="avatar || AvatarImg" alt="Avatar" />
             <div v-if="role === 'user'" class="UserName">{{ userName }}</div>
-            <div v-else class="UserName">机器人</div>
+            <div v-else class="UserName" @click="testCon">机器人</div>
             <div v-if="role === 'assistant'" class="BotIcon">🤖</div>
 
             <el-tag round v-if="role === 'assistant'" class="ModelName" style="margin-left: 10px">{{ modelName
@@ -30,6 +30,8 @@
 
         </div>
         <div class="Content">
+            <div class="table-title">{{tableName}}</div>
+            <a-table style="margin-bottom: 10px;" :scroll="{ y: 150 }"  width="500px" :dataSource="dataSoucre" :columns="columns" v-if="Object.keys(props.sqlQueryResult).length>0 && role === 'assistant'" :pagination="false"/>
             <span class="Text markdown-body " data-theme="light" v-html="renderedContent"></span>
         </div>
     </div>
@@ -43,6 +45,8 @@ import type { Step } from './type';
 import { CaretRightOutlined } from '@ant-design/icons-vue';
 import { getPipelinesApi } from './aichat_api';
 import CheckmarkAnimation from './CheckmarkAnimation.vue'
+
+
 
 const activeKey = ref<string[]>([]);
 const currentStepIndex = computed(() => {
@@ -69,6 +73,7 @@ const props = withDefaults(defineProps<{
     modelName?: string;
     queryId:number;
     last: boolean;
+    sqlQueryResult: any;
 }>(), {
     role: 'user',
     content: '**空内容**',
@@ -76,8 +81,37 @@ const props = withDefaults(defineProps<{
     userName: 'User',
     modelName: 'Qwen3',
     last: false,
-    //steps: () => [{ id: 0, name: '示例步骤1', content: '这是一个示例步骤', status: 'completed' }, { id: 1, name: '示例步骤2', content: '这是一个示例步骤2', status: 'running' }, { id: 0, name: '示例步骤3', content: '这是一个示例步骤3', status: 'not-started' }]
+    sqlQueryResult: () => ({})
 });
+function testCon() {
+  console.log(props.sqlQueryResult)
+}
+// 表格参数，根据传入props的sqlQueryResult动态计算
+
+const tableName = computed(() => {
+    console.log(Object.keys(props.sqlQueryResult))
+    return Object.keys(props.sqlQueryResult)[0]
+})
+
+const dataSoucre = computed(()=> {
+    const key = Object.keys(props.sqlQueryResult)[0];
+    return props.sqlQueryResult[key] || [];
+})
+
+const columns = computed(()=> {
+    const key = Object.keys(props.sqlQueryResult)[0];
+    const tmp = props.sqlQueryResult[key] || []
+    if (tmp.length === 0) return [];
+    // 取第一条数据的 key 作为列名
+    const sampleRecord = tmp[0];
+    return Object.keys(sampleRecord).map(key => ({
+      title: key.toUpperCase(),   // A, B...
+      dataIndex: key,
+      key: key
+    }));
+})
+
+
 console.log(props,'props')
 watch(() => props, (newContent) => {
     console.log('内容更新:', newContent);
@@ -218,8 +252,13 @@ const renderedContent = computed(() => {
         background-color: #f0f0f0;
         padding: 10px;
         border-radius: 5px;
-
+        .table-title{
+          font-size: 16px;
+          font-weight: bold;
+          margin: 10px 5px;
+        }
         .Text {
+            margin-top: 20px;
             //margin-bottom: 5px;
            // text-align: center;
             height: 100%;

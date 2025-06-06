@@ -79,9 +79,23 @@ function waitChat() {
   messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }]
   messages.value = [
     ...messages.value,
-    { role: 'assistant', content: '', type: 'text', id:responseId, last:true }
+    { role: 'assistant', content: '', type: 'text', id:responseId, last:true, sqlQueryResult: {} }
   ];
 }
+const sqlQueryResultMock = {title: [
+  {
+    a: '1',
+    b: '2'
+  },
+  {
+    a: '3',
+    b: '4'
+  },
+  {
+    a: '5',
+    b: '6'
+  }
+]}
 function clearChunkResult() {
     chunkCnt = 0;
     sqlQueryResult.value = null;
@@ -97,7 +111,15 @@ function onChunk(chunk, fullText) {
         const meta = JSON.parse(chunk)
 
         currentChatType.value = meta.type
-        sqlQueryResult.value = meta.sqlQueryResult
+        // sqlQueryResult.value = meta.sqlQueryResult
+        sqlQueryResult.value = sqlQueryResultMock
+        messages.value = messages.value.map((item,index) => {
+            if(index == messages.value.length - 1) {
+              item.sqlQueryResult = sqlQueryResultMock
+            }
+            return item
+        })
+        console.log(messages.value,'messages.value')
         responseId = meta.responseId
         if (currentChatId.value === null) {
             // 如果当前聊天 ID 为空，则设置为返回的 chatId
@@ -171,14 +193,19 @@ async function sendMsg() {
               onChunk,
               onComplete
             })
-            await chatStreamApi({
-                messages: [...messages.value.slice(0, -1)],
-                chatId: currentChatId.value,
-                modelName: modelName.value,
-                responseId: responseId,
-                onChunk,
-                onComplete
-            });
+            try {
+                await chatStreamApi({
+                    messages: [...messages.value.slice(0, -1)],
+                    chatId: currentChatId.value,
+                    modelName: modelName.value,
+                    responseId: responseId,
+                    onChunk,
+                    onComplete
+                });
+            } catch (e:any) {
+                message.info(e)
+            }
+
         } catch (error) {
             console.error('发送消息失败:', error);
             messageApi.error('发送消息失败');

@@ -4,11 +4,12 @@
             :model-name="item.modelName"
             :query-id="item.id"
             :last="item?.last"
+            :sqlQueryResult="item?.sqlQueryResult"
              />
         <div class="Welcome" v-else
             style="display: flex; justify-content: center;align-items: center; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%)">
             <img class="Logo" :src="RobotIcon" style="border-radius: 50%; width: 50px; height: 50px"></img>
-            <div class="WelcomeText" style="font-size: 32px;margin-left: 24px;">欢迎</div>
+            <div class="WelcomeText" style="font-size: 32px;margin-left: 24px;font-weight: 600;">欢迎</div>
         </div>
         <div style="margin: 80px 0;"></div>
     </div>
