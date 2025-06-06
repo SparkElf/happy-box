@@ -168,7 +168,7 @@ async function sendMsg() {
               onComplete
             })
             await chatStreamApi({
-                messages: [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }],
+                messages: [...messages.value.slice(0, -1)],
                 chatId: currentChatId.value,
                 modelName: modelName.value,
                 responseId: responseId,

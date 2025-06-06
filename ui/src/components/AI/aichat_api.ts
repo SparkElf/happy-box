@@ -28,6 +28,11 @@ export async function getChatHistoryListApi({ userId }) {
   return request.post("/getAiChatHistoryList", { user_id: userId });
 }
 
+
+export async function delChatApi({ chatId }) {
+  return request.post("/delChat", { chatId: chatId });
+}
+
 export async function getModelListApi() {
   return request.post("/getModelList");
 }

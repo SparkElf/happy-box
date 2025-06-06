@@ -19,8 +19,11 @@
         <a-menu v-model:selectedKeys="selectedKeys" theme="light" mode="inline" v-if="!collapsed"
             style="background-color: transparent; border: none; overflow-y: auto; max-height: 60vh;" >
             <template v-for="item in filteredChatHistoryList" :key="item.chatId">
-                <a-menu-item @click="currentChatId = item.chatId">
-                    <span>{{ item.title || '无标题' }}</span>
+                <a-menu-item  >
+                    <div style="display: flex;justify-content: space-between;align-items: center">
+                    <span class="ellipsis-span" @click="currentChatId = item.chatId"> {{ item.title || '无标题' }}</span>
+                    <DeleteOutlined class="del-icon" @click.stop="delChat(item.chatId)" />
+                    </div>
                 </a-menu-item>
             </template>
         </a-menu>
@@ -28,10 +31,10 @@
 </template>
 <script lang="ts" setup>
 import {
-    AlignLeftOutlined
+    AlignLeftOutlined,DeleteOutlined
 } from '@ant-design/icons-vue';
 import { ref, computed, onMounted, inject, type Ref, watch } from 'vue';
-import { getChatHistoryListApi } from './aichat_api';
+import { getChatHistoryListApi,delChatApi } from './aichat_api';
 import SearchIcon from './SearchIcon.vue';
 const collapsed = ref<boolean>(false);
 const selectedKeys = ref<string[]>([]);
@@ -63,6 +66,12 @@ watch(() => needRefreshHistoryList.value, async (newValue) => {
 function onSearch() {
     // 这里可以扩展为远程搜索，当前为本地过滤
 }
+
+function delChat(chatId: string) {
+    console.log('del!!!!!!!!!!!!!!!!!!!!!!',chatId)
+    delChatApi({chatId}).then(() => {})
+}
+
 async function getChatHistoryList() {
     // 假设 userId 为 1，实际可根据登录用户动态获取
     const userId = 1;
@@ -127,5 +136,23 @@ onMounted(async () => {
     }
 
 
+}
+.ellipsis-span {
+  display: inline-block;
+  max-width: 80%; /* 占据父容器宽度的 80% */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.del-icon {
+  font-size: 18px !important;
+  transform: rotate(90deg);
+  opacity: 0;
+  //display: none;
+  &:hover {
+    display: block;
+    transform: rotate(0);
+    opacity: 1;
+  }
 }
 </style>
