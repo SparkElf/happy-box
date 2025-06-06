@@ -24,7 +24,7 @@
 <script lang="ts" setup>
 import SideBar from './SideBar.vue';
 import ChatArea from './ChatArea.vue';
-import { onMounted, provide, ref } from 'vue';
+import { onMounted, provide, ref, watch } from 'vue';
 import { chatApi, getAiChatBaseInfoApi, getModelListApi, chatStreamApi } from './aichat_api'
 import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
@@ -141,6 +141,9 @@ function onComplete() {
       item.last = index === messages.value.length -1
     })
 }
+watch(messages.value, (newVal, oldVal) => {
+    console.log('messages changed:', newVal);
+})
 async function sendMsg() {
     if (loading.value) {
         return; // 如果正在加载，则不发送新消息
@@ -156,6 +159,7 @@ async function sendMsg() {
     if (stream.value) {
         // 这里可以添加发送消息的逻辑
         try {
+            console.log(messages,'messages!!!!!!!!!!!!!!')
             //messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }, { role: 'assistant', content: '', type: 'text' }]; // 更新消息列表
             clearChunkResult();
             waitChat()

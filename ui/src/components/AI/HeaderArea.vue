@@ -93,6 +93,7 @@ const modelMenuList = ref([] as any[]); // 模型菜单列表
 const modelName = inject('modelName');
 const popOpen = ref(false)
 const stream = inject('stream'); // 获取流式响应状态
+const messages = inject('messages'); // 获取消息列表
 watch(() => modelList.value, (newValue) => {
   modelMenuList.value = newValue.map((item,index) => ({
     name: item.modelName,
@@ -148,6 +149,7 @@ function logout() {
 function newChat() {
   //message.success('newChat!')
   currentChatId.value = null; // 清空当前聊天 ID
+  messages.value = []; // 清空消息列表
   needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
 }
 
