@@ -143,7 +143,7 @@ def sqlToolExecutor(messages, model_name, response_id, conn):
     prompt =f"""
 指令：
 你是一个{database}数据库的数据分析专家,请根据知识库内容和用户提问,分解问题为若干sql查询任务
-1.你的最终输出为一个数组,不包含其他解释说明的文字.数组的示例为:{example},数组对象内容包括sql查询和对应的解释标题,标题不超过10个字.
+1.你的最终输出为一个数组,不包含其他解释说明的文字,不包含markdown代码块标记.数组的示例为:{example},数组对象内容包括sql查询和对应的解释标题,标题不超过10个字.
 2.对今日、本周、去年等非指定时间应该采用数据库函数计算得到,且对于今日、本周、本月等非显示指定的时间段词语需同时考虑左右时间范围
 3.sql应符合{database}语法规范.
 4.如果知识库提到该表存在重复数据,要参考知识库内容对查询结果去重.
@@ -156,6 +156,7 @@ def sqlToolExecutor(messages, model_name, response_id, conn):
     """
     query = messages+ [{'role': 'system', 'content': prompt}]
     sqlQueryText=modelService(model_name, query)['content']
+    print(sqlQueryText)
     sqlQueries=json.loads(sqlQueryText)
     updatePipeline(conn, response_id, "生成SQL查询", "completed",sqlQueryText)
     updatePipeline(conn, response_id, "执行SQL查询", "running",sqlQueryText)

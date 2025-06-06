@@ -111,11 +111,11 @@ function onChunk(chunk, fullText) {
         const meta = JSON.parse(chunk)
 
         currentChatType.value = meta.type
-        // sqlQueryResult.value = meta.sqlQueryResult
-        sqlQueryResult.value = sqlQueryResultMock
+        sqlQueryResult.value = meta.sqlQueryResult
+        //sqlQueryResult.value = sqlQueryResultMock
         messages.value = messages.value.map((item,index) => {
             if(index == messages.value.length - 1) {
-              item.sqlQueryResult = sqlQueryResultMock
+              item.sqlQueryResult = sqlQueryResult.value
             }
             return item
         })
@@ -167,7 +167,7 @@ watch(messages.value, (newVal, oldVal) => {
     console.log('messages changed:', newVal);
 })
 async function sendMsg() {
-    
+
     if (loading.value) {
         return; // 如果正在加载，则不发送新消息
     }

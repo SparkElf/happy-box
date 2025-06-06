@@ -262,7 +262,7 @@ const renderedContent = computed(() => {
             //margin-bottom: 5px;
            // text-align: center;
             height: 100%;
-
+            background-color: transparent !important;
 
         }
 
