@@ -92,7 +92,7 @@ watch(intervalId, (newv, oldv) => {
     }
 },{immediate:true})
 watch(currentStep, (newStep) => {
-    console.log('当前步骤更新:', newStep);
+    //console.log('当前步骤更新:', newStep);
     if(!props.last) {
       return
     }
