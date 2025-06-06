@@ -13,14 +13,14 @@ function getToken() {
 export async function chatApi({ messages, chatId, modelName, stream }: { messages: any[], chatId: number | null, modelName: string, stream: boolean }) {
   return request.post("/completions", { messages, chatId, modelName, stream });
 }
-export async function chatStreamApi({ messages, chatId, modelName,onChunk,onComplete }: { messages: any[], chatId: number | null, modelName: string, onChunk: (chunk: string, fullText: string) => void, onComplete?: (fullText: string) => void }) {
+export async function chatStreamApi({ messages, chatId, modelName, responseId, onChunk,onComplete }: { messages: any[], chatId: number | null, modelName: string, responseId: string, onChunk: (chunk: string, fullText: string) => void, onComplete?: (fullText: string) => void }) {
   await fetchStream(import.meta.env.VITE_AI_CHAT_BASE_URL + "/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: getToken(),
     },
-    body: JSON.stringify({ messages, chatId, modelName,stream:true }),
+    body: JSON.stringify({ messages, chatId, modelName,responseId,stream:true }),
   }, onChunk||  (() => {}), onComplete|| (() => {}));
 }
 

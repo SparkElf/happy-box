@@ -362,6 +362,7 @@ def getChatTitle(messages,model_name=None):
         response = modelService(model_name, task_massages)
         return response['content']
 
+import time
 @app.route('/completions', methods=['POST'])
 def chatController():
     data = request.get_json()
@@ -371,6 +372,7 @@ def chatController():
     messages = data.get('messages', None)
     chat_id = data.get('chatId', None)
     stream = data.get('stream', False)
+    response_id = data.get('responseId', None)
     if not messages or not isinstance(messages, list):
         return jsonify({'error': '空对话'}), 400
     if not token:
@@ -402,17 +404,20 @@ def chatController():
         cursor.execute("INSERT INTO aichat_query (chat_id , query, type) VALUES (%s,  %s, %s)",
                         (chat_id, message['content'], message.get('type', 'text')))
         query_id = cursor.lastrowid
-        response_id = cursor.execute("INSERT INTO aichat_response (chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
-                            (chat_id, query_id, "", "text", model_name))
-        response_id = cursor.lastrowid
+#         response_id = cursor.execute("INSERT INTO aichat_response (id,chat_id, query_id, content, type , model_name) VALUES (%s, %s, %s, %s, %s)",
+#                             (chat_id, query_id, "", "text", model_name))
+        cursor.execute("INSERT INTO aichat_response (id,chat_id, query_id, content, type , model_name) VALUES (%s,%s, %s, %s, %s, %s)",
+                                    (response_id,chat_id, query_id, "", "text", model_name))
         initPipeline(model_name, messages, response_id, conn)
         if title:
             title = getChatTitle(messages, model_name)
             cursor.execute("UPDATE aichat SET title = %s WHERE chat_id = %s", (title, chat_id))
         updatePipeline(conn, response_id, "初始化", "completed")
         updatePipeline(conn, response_id, "选择工具", "running")
+        time.sleep(1)
         tool = toolSelection(messages, model_name)
         initToolPipeline(tool['type'], model_name, messages, response_id, conn)
+        updatePipeline(conn, response_id, "选择工具", "completed")
         sql_query_result ={}
         if tool['type'] == 'sql':
             sql_query_result=sqlToolExecutor(messages, model_name, response_id, conn)
@@ -499,9 +504,22 @@ def getPipelineListController():
         return jsonify({'error': '缺少queryId参数'}), 400
     query_id = data['queryId']
     try:
-        pipelines = queryDB("SELECT * FROM aichat_pipeline WHERE response_id = %s ORDER BY seq", (int(query_id),))
+        pipelines = queryDB("SELECT * FROM aichat_pipeline WHERE response_id = %s ORDER BY seq", (query_id,))
         if not pipelines:
-            pipelines = []
+            pipelines = [{
+                "name": "初始化",
+                "status": "running"
+            },{
+                "name": "准备工具",
+                "status": "non-started"
+            },{
+                "name": "生成回复",
+                "status": "non-started"
+            },]
+        if len(pipelines) == 1:
+            pipelines += [{ "name": "准备工具", "status": "non-started" },{ "name": "生成回复", "status": "non-started" }]
+        if len(pipelines) == 2 :
+            pipelines += [{ "name": "生成回复", "status": "non-started" }]
         return jsonify(pipelines)
     except Exception as e:
         return jsonify({'error': '未知错误,请联系管理员'}), 500

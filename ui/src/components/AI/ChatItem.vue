@@ -75,6 +75,7 @@ const props = withDefaults(defineProps<{
     time: new Date().toLocaleTimeString(),
     userName: 'User',
     modelName: 'Qwen3',
+    last: false,
     //steps: () => [{ id: 0, name: '示例步骤1', content: '这是一个示例步骤', status: 'completed' }, { id: 1, name: '示例步骤2', content: '这是一个示例步骤2', status: 'running' }, { id: 0, name: '示例步骤3', content: '这是一个示例步骤3', status: 'not-started' }]
 });
 console.log(props,'props')
@@ -169,6 +170,7 @@ const renderedContent = computed(() => {
     }
 
     &.UserRole {
+        margin: 30px 0;
         align-items: flex-end;
 
         .Avatar {

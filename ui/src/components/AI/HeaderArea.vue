@@ -181,6 +181,7 @@ function newChat() {
       font-weight: 500;
       font-size: 18px;
       color: rgb(78,78,78);
+      user-select: none;
     }
   }
   .new-chat {
@@ -268,6 +269,7 @@ function newChat() {
         font-family: "Georgia, serif", sans-serif;
         color: rgb(78,78,78);
         font-weight: 500;
+        user-select: none;
       }
       .model-icon {
         margin-left: 5px;
