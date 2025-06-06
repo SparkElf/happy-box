@@ -29,7 +29,7 @@ import { chatApi, getAiChatBaseInfoApi, getModelListApi, chatStreamApi } from '.
 import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
 import HeaderArea from "@/components/AI/HeaderArea.vue";
-const [messageApi, contextHolder] = message.useMessage();
+
 const props = defineProps({
     height: {
         type: [String, Number],
@@ -55,7 +55,7 @@ onMounted(async () => {
     // 获取模型列表
     const res = await getModelListApi();
     if (res.status !== 200) {
-        messageApi.error('获取模型列表失败');
+        message.error('获取模型列表失败');
         return;
     }
     modelList.value = res.data; // 设置模型列表
@@ -158,7 +158,7 @@ function onChunk(chunk, fullText) {
 function onComplete() {
     console.log('Stream completed');
     loading.value = false; // 重置加载状态
-    messageApi.success('消息发送成功');
+    message.success('消息发送成功');
     messages.value.forEach((item, index) => {
       item.last = index === messages.value.length -1
     })
@@ -167,6 +167,7 @@ watch(messages.value, (newVal, oldVal) => {
     console.log('messages changed:', newVal);
 })
 async function sendMsg() {
+    
     if (loading.value) {
         return; // 如果正在加载，则不发送新消息
     }
@@ -174,7 +175,7 @@ async function sendMsg() {
         return;
     }
     if (modelName.value === "未知模型") {
-        messageApi.error('请选择模型');
+        message.error('请选择模型');
         return;
     }
     loading.value = true; // 设置加载状态
@@ -208,7 +209,7 @@ async function sendMsg() {
 
         } catch (error) {
             console.error('发送消息失败:', error);
-            messageApi.error('发送消息失败');
+            message.error('发送消息失败');
             loading.value = false; // 重置加载状态
             return;
         }
@@ -225,7 +226,7 @@ async function sendMsg() {
             stream: false // 关闭流式响应
         });
         if (res.status !== 200) {
-            messageApi.error('发送消息失败:');
+            message.error('发送消息失败:');
             loading.value = false; // 重置加载状态
             return;
         }

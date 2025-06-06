@@ -46,6 +46,7 @@ def dict_keys_to_camel(d):
     else:
         return d
 
+import datetime
 def queryDB(sql, params=None):
     try:
         conn = get_db_connection()
@@ -53,7 +54,19 @@ def queryDB(sql, params=None):
             cursor.execute(sql, params)
             result = cursor.fetchall()
         conn.close()
-        # 新增：自动转驼峰
+        # 新增：自动转驼峰并格式化datetime
+        def format_datetime(obj):
+            if isinstance(obj, dict):
+                return {k: format_datetime(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [format_datetime(i) for i in obj]
+            elif isinstance(obj, datetime.datetime):
+                return obj.strftime('%Y-%m-%d %H:%M:%S')
+            elif isinstance(obj, datetime.date):
+                return obj.strftime('%Y-%m-%d')
+            else:
+                return obj
+        result = format_datetime(result)
         return dict_keys_to_camel(result)
     except Exception as e:
         print(f"Database query error: {e}")
@@ -122,6 +135,7 @@ def initToolPipeline(type, model_name,messages,response_id,conn):
 
 
 def sqlToolExecutor(messages, model_name, response_id, conn):
+
     updatePipeline(conn, response_id, "生成SQL查询", "running")
     context = dify_examplesql_knowledge_retrieval(messages[-1]['content'])
     example='[{"sql","select field from table where condition","title":"查询示例"}]'
@@ -425,7 +439,8 @@ def chatController():
         sql_query_result ={}
         if tool['type'] == 'sql':
             sql_query_result=sqlToolExecutor(messages, model_name, response_id, conn)
-        response = modelService(model_name, messages,stream=stream)
+        query=messages if tool['type']=='chat' else messages+[{'role': 'system', 'content': f'请根据用户输入的内容和sql查询结果生成回复.\nsql查询结果: {json.dumps(sql_query_result)}'}]
+        response = modelService(model_name, query,stream=stream)
         full_content = ""
         if stream:
             def generate():
