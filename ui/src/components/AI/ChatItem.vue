@@ -89,6 +89,7 @@ function testCon() {
 // 表格参数，根据传入props的sqlQueryResult动态计算
 
 const tableName = computed(() => {
+    console.log(props.sqlQueryResult,'tableName eeee')
     console.log(Object.keys(props.sqlQueryResult))
     return Object.keys(props.sqlQueryResult)[0]
 })

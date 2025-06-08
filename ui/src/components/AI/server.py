@@ -133,17 +133,61 @@ def initToolPipeline(type, model_name,messages,response_id,conn):
         print(f"Error initializing pipeline: {e}")
         raise Exception("初始化管道失败")
 
+import re
+import json
+
+def cleanJsonResponse(raw_response: str, default=None):
+    """
+    从大模型返回的文本中提取并修复 JSON 数据。
+
+    :param raw_response: 原始文本，可能包含 ```json 代码块
+    :param default: 解析失败时返回的默认值，默认为 []
+    :return: 解析成功的 JSON 对象或默认值
+    """
+    if default is None:
+        default = []
+
+    # 1. 提取 JSON 代码块内容（支持多行和任意空白）
+    json_match = re.search(r'```json\s*([\s\S]*?)\s*```', raw_response, re.DOTALL)
+    if json_match:
+        json_str = json_match.group(1)
+    else:
+        # 如果没有代码块标记，直接尝试解析整个内容
+        json_str = raw_response
+
+    # 2. 清理 JSON 字符串（去除换行、多余空格）
+    json_str = json_str.strip()
+    json_str = re.sub(r'\s+', ' ', json_str)  # 合并多个空格为一个
+
+    # 3. 尝试解析 JSON
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError as e:
+        print(f"原始 JSON 解析失败: {e}")
+        # 4. 尝试修复常见语法错误
+        try:
+            # 尝试补逗号（对象之间）
+            json_str = re.sub(r'}\s*{', '}, {', json_str)
+            # 尝试闭合括号
+            if json_str.count('{') > json_str.count('}'):
+                json_str += '}' * (json_str.count('{') - json_str.count('}'))
+            if json_str.count('[') > json_str.count(']'):
+                json_str += ']' * (json_str.count('[') - json_str.count(']'))
+            return json.loads(json_str)
+        except json.JSONDecodeError as e2:
+            print(f"修复后 JSON 解析失败: {e2}")
+            return default
 
 def sqlToolExecutor(messages, model_name, response_id, conn):
 
     updatePipeline(conn, response_id, "生成SQL查询", "running")
-    context = dify_examplesql_knowledge_retrieval(messages[-1]['content'])
+    context = difyExamplesqlKnowledgeRetrieval(messages[-1]['content'])
     example='[{"sql","select field from table where condition","title":"查询示例"}]'
     database='mysql'
     prompt =f"""
 指令：
 你是一个{database}数据库的数据分析专家,请根据知识库内容和用户提问,分解问题为若干sql查询任务
-1.你的最终输出为一个数组,不包含其他解释说明的文字,不包含markdown代码块标记.数组的示例为:{example},数组对象内容包括sql查询和对应的解释标题,标题不超过10个字.
+1.你的最终输出为一个数组,不包含其他解释说明的文字,不包含markdown代码块等其他格式.数组的示例为:{example},数组对象内容包括sql查询和对应的解释标题,标题不超过10个字.
 2.对今日、本周、去年等非指定时间应该采用数据库函数计算得到,且对于今日、本周、本月等非显示指定的时间段词语需同时考虑左右时间范围
 3.sql应符合{database}语法规范.
 4.如果知识库提到该表存在重复数据,要参考知识库内容对查询结果去重.
@@ -155,17 +199,17 @@ def sqlToolExecutor(messages, model_name, response_id, conn):
 
     """
     query = messages+ [{'role': 'system', 'content': prompt}]
-    sqlQueryText=modelService(model_name, query)['content']
+    sqlQueries=cleanJsonResponse(modelService(model_name, query)['content'])
+    sqlQueryText=json.dumps(sqlQueries, ensure_ascii=False)
     print(sqlQueryText)
-    sqlQueries=json.loads(sqlQueryText)
     updatePipeline(conn, response_id, "生成SQL查询", "completed",sqlQueryText)
     updatePipeline(conn, response_id, "执行SQL查询", "running",sqlQueryText)
-    result={}
+    result=[]
     for sqlQuery in sqlQueries:
         sql = sqlQuery['sql']
         if '?' in sql:
              raise Exception("查询问题未包含足够的参数,请补充相关参数!")
-        result[sqlQuery['title']] = queryDB(sql)
+        result.append({'query':sql,'result':queryDB(sql),'title':sqlQuery['title']})
     updatePipeline(conn, response_id, "执行SQL查询", "completed")
     return result
 def insertPipeline(conn,response_id, name,status,content=""):
@@ -276,7 +320,7 @@ def dify_knowledge_retrieval(api_key, dataset_id, query, search_method="semantic
     }
 
     try:
-        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response = requests.post(url, headers=headers, data=json.dumps(payload,ensure_ascii=False))
         response.raise_for_status()
         response=response.json().get("records", [])
         if response:
@@ -288,7 +332,7 @@ def dify_knowledge_retrieval(api_key, dataset_id, query, search_method="semantic
         print(f"请求失败: {e}")
         return []
 
-def dify_examplesql_knowledge_retrieval(query):
+def difyExamplesqlKnowledgeRetrieval(query):
     return dify_knowledge_retrieval("dataset-jtJUR3S6p8MKebd7oo9cCThq","dee1ce34-c411-469f-869a-a7078ced5961",query)
 
 @app.route('/getAiChatBaseInfo', methods=['POST'])
@@ -326,7 +370,8 @@ def getAiChatBaseInfoController():
                         'content': response['content'],
                         'type': response.get('type', 'text'),
                         'messageId': response['id'],  # 自动生成唯一消息ID
-                        'modelName': response.get('modelName', '未知模型')  # 模型名称
+                        'modelName': response.get('modelName', '未知模型'),  # 模型名称
+                        'sqlResult': json.loads(response['sqlResult']) if response['sqlResult'] else None  # SQL查询结果
                     }
                     messagges.append(message)
 
@@ -437,10 +482,10 @@ def chatController():
         tool = toolSelection(messages, model_name)
         initToolPipeline(tool['type'], model_name, messages, response_id, conn)
         updatePipeline(conn, response_id, "选择工具", "completed")
-        sql_query_result ={}
+        sql_query_result =[]
         if tool['type'] == 'sql':
             sql_query_result=sqlToolExecutor(messages, model_name, response_id, conn)
-        query=messages if tool['type']=='chat' else messages+[{'role': 'system', 'content': f'请根据用户输入的内容和sql查询结果生成回复.\nsql查询结果: {json.dumps(sql_query_result)}'}]
+        query=messages if tool['type']=='chat' else messages+[{'role': 'system', 'content': f'请根据用户输入的内容和sql查询结果生成回复.\nsql查询结果: {json.dumps(sql_query_result,ensure_ascii=False)}'}]
         response = modelService(model_name, query,stream=stream)
         full_content = ""
         if stream:
@@ -452,7 +497,7 @@ def chatController():
                 nonlocal chat_id
                 nonlocal response_id
                 try:
-                    yield json.dumps({'type':tool['type'],'sqlQueryResult':sql_query_result,'chatId':chat_id,'responseId':response_id})
+                    yield json.dumps({'type':tool['type'],'sqlQueryResult':sql_query_result,'chatId':chat_id,'responseId':response_id},ensure_ascii=False)
                     updatePipeline(conn, response_id, "生成回复", "completed")
                     for chunk in response['content']:
                         print(chunk)
@@ -465,8 +510,8 @@ def chatController():
                     print(f"Error during streaming: {e}")
                     conn.rollback()
                 finally:
-                    cursor.execute("update aichat_response set content = %s where id = %s",
-                            (full_content, response_id))
+                    cursor.execute("update aichat_response set content = %s,sql_result = %s where id = %s",
+                            (full_content,json.dumps(sql_query_result,ensure_ascii=False) ,response_id))
                     conn.commit()
                     conn.close()
             return Response(generate(), mimetype='text/event-stream')

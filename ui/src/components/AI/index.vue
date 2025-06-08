@@ -195,8 +195,19 @@ async function sendMsg() {
               onComplete
             })
             try {
+                const sendMessages = []
+                for (let i = 0; i < messages.value.length - 1; i++) {
+                    if (messages.value[i].sqlResult&&messages.value[i].sqlResult.length>0&&messages.value[i].role === 'assistant') {
+                        sendMessages.push({
+                            role: 'system',
+                            content: '用户问题生成的SQL查询标题、SQL查询语句、SQL查询结果为:\n' + messages.value[i].sqlResult,
+                            type: 'text'
+                        })
+                    }
+                    sendMessages.push(messages.value[i])
+                }
                 await chatStreamApi({
-                    messages: [...messages.value.slice(0, -1)],
+                    messages: sendMessages,
                     chatId: currentChatId.value,
                     modelName: modelName.value,
                     responseId: responseId,

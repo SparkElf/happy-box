@@ -4,7 +4,7 @@
             :model-name="item.modelName"
             :query-id="item.id"
             :last="item?.last"
-            :sqlQueryResult="item?.sqlQueryResult"
+            :sqlQueryResult="getSqlQueryResult(item?.sqlResult)"
              />
         <div class="Welcome" v-else
             style="display: flex; justify-content: center;align-items: center; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%)">
@@ -50,7 +50,18 @@ watch(messages, (newMessages) => {
         }
     });
 }, { immediate: true }); // 监听 messages 的变化
+function getSqlQueryResult(sqlResult) {
+    console.log(sqlResult,'(sqlResult)',messages)
+    const sqlQueryResult = {}
+    if (sqlResult) {
 
+        sqlResult.forEach(item => {
+            sqlQueryResult[item.title] = item.result
+        })
+        return sqlQueryResult
+    }
+    return sqlQueryResult
+}
 
 </script>
 <style lang="scss" scoped>
