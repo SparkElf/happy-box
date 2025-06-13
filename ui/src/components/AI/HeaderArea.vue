@@ -139,11 +139,11 @@ function openDialog() {
   message.success("openDialog!!!")
 }
 
-import { useUserStore } from '@/store/modules/user';
+// import { useUserStore } from '@/store/modules/user';
 // 退出登陆
 function logout() {
 
-  console.log(useUserStore().roles)
+  // console.log(useUserStore().roles)
   message.success('logout!')
 }
 

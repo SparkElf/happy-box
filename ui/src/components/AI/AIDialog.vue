@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import AIChat from './index.vue'
-import {ref} from 'vue'
+import {ref,computed} from 'vue'
 import {RobotOutlined} from "@ant-design/icons-vue";
 // import { message } from 'ant-design-vue';
 
@@ -34,7 +34,7 @@ import {RobotOutlined} from "@ant-design/icons-vue";
 
 const open = ref(false)
 
-
+import {useRoute} from 'vue-router'
 const route = useRoute()
 const showAIDialog = computed(() => {
   console.log(route.fullPath.includes("/yjks/index"))
