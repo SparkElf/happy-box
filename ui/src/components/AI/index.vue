@@ -105,15 +105,12 @@ function clearChunkResult() {
     responseId = ''
 }
 
-
+let firstChunkDone = false
 function onChunk(chunk, fullText) {
-    console.log('Received chunk:', chunk);
     chunkCnt++;
 
-
-
     if (fullText.includes(":META DATA DONE:")) {
-        
+        firstChunkDone = true
         firstChunkStr = fullText.split(":META DATA DONE:")[0]
         META_DATA_DONE = true
         const meta = JSON.parse(firstChunkStr)
@@ -135,8 +132,7 @@ function onChunk(chunk, fullText) {
             needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
         }
         console.log('当前聊天类型:', currentChatType.value);
-        return
-    }
+    } else return
 
 
     if (startChat==false) {
@@ -144,23 +140,14 @@ function onChunk(chunk, fullText) {
         inputValue.value = ''
         startChat=true
     }
-    // 这里可以处理接收到的 chunk 数据
     console.log('Full text:', fullText, firstChunkStr);
     if(fullText.startsWith(firstChunkStr)) {
-      console.log('Full text:', fullText, firstChunkStr);
     //   fullText = fullText.slice(firstChunkStr.length);
       fullText = fullText.split(":META DATA DONE:")[1]
     }
-    // 例如，将 chunk 添加到消息列表中
     if (messages.value[messages.value.length - 1].role === 'assistant') {
-         // 删除最后一个元素
-    // messages.value = messages.value.slice(0, -1);
-    // 添加新的 assistant 消息
         messages.value[messages.value.length - 1].content = fullText
     }
-    // else {
-    //     messages.value[messages.value.length - 1].content = fullText
-    // }
 
 }
 
@@ -171,6 +158,7 @@ function onComplete() {
     messages.value.forEach((item, index) => {
       item.last = index === messages.value.length -1
     })
+    firstChunkDone = false
 }
 watch(messages.value, (newVal, oldVal) => {
     console.log('messages changed:', newVal);

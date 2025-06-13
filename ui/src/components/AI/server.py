@@ -17,12 +17,20 @@ import uuid  # 新增
 app = Flask(__name__)
 CORS(app)
 # 数据库配置
+# DB_CONFIG = {
+#     'host': '71.30.81.158',
+#     'user': 'ai_database',
+#     'password': 'nndx_ai@135',
+#     'database': 'happy_box',
+#     'port': 9030,
+#     'cursorclass': pymysql.cursors.DictCursor
+# }
 DB_CONFIG = {
-    'host': '71.30.81.158',
-    'user': 'ai_database',
-    'password': 'nndx_ai@135',
-    'database': 'happy_box',
-    'port': 9030,
+    'host': 'localhost',
+    'user': 'root',
+    'password': 'password',
+    'database': 'happy-box',
+    'port': 3306,
     'cursorclass': pymysql.cursors.DictCursor
 }
 def getUserInfo(token):
@@ -412,12 +420,12 @@ def qtQwen72ModelService(messages,stream=False):
         "password": "hrdhreth1"
     }
     auth_response = requests.post(auth_url, json=auth_data)
-    
+
     if auth_response.status_code != 200:
         raise Exception(f"Failed to get token: {auth_response.status_code} - {auth_response.text}")
-    
+
     token = auth_response.json().get('token')
-    
+
     # 发送消息
     chat_url = f"http://71.2.255.46:28080/api/chat/completions"
     headers = {
@@ -451,7 +459,7 @@ def qtQwen72ModelService(messages,stream=False):
             with requests.post(chat_url, headers=headers, json=chat_data, stream=True) as response:
                 if response.status_code != 200:
                     raise Exception(f"模型服务异常: {response.status_code} - {response.text}")
-                
+
                 for line in response.iter_lines():
                     if line:
                         decoded_line = line.decode('utf-8')
@@ -480,6 +488,7 @@ def modelService(model_name,messages,stream=False):
                 stream=stream
             )
         if not stream:
+            print(response.choices[0].message.content,"123123123123123123123123123")
             return {"content":response.choices[0].message.content,"type":"text"}
         else:
             return {"content":response,"type":"streamtext"}
@@ -488,7 +497,7 @@ def modelService(model_name,messages,stream=False):
         if not stream:
             return {"content":response,"type":"text"}
         else:
-            return {"content":response,"type":"streamtext"} 
+            return {"content":response,"type":"streamtext"}
     return {'message':{'role':'assistant','content':'模型消息mock','type':'text'},'pipelines':[{'sql': 'SELECT * FROM users', 'status': 'not-started', 'name': '查询用户信息'}]}
     if model_name == 'chat.qwen.aiqwen-Qwen3-235B-A22B':
         model_info=queryDB("SELECT * FROM aichat_model WHERE model_name = 'chat.qwen.aiqwen-Qwen3-235B-A22B' limit 1")
@@ -520,12 +529,15 @@ def chatController():
     chat_id = data.get('chatId', None)
     stream = data.get('stream', False)
     response_id = data.get('responseId', None)
-    
+
     if not messages or not isinstance(messages, list):
         return jsonify({'error': '空对话'}), 400
     if not token:
         return jsonify({'error': '缺少token参数'}), 400
-    user_info = getUserInfo(token)
+#     user_info = getUserInfo(token)
+    user_info = {
+        "userId": 1
+    }
     if not user_info:
         return jsonify({'error': '无效的token'}), 401
     user_id = user_info['userId']
@@ -585,8 +597,9 @@ def chatController():
                     updatePipeline(conn, response_id, "生成回复", "completed")
                     for chunk in response['content']:
                         if chunk:
-                            full_content += chunk
-                            yield chunk
+                            print(chunk.choices[0].delta.content)
+                            full_content += chunk.choices[0].delta.content
+                            yield chunk.choices[0].delta.content
 
                 except Exception as e:
                     print(f"Error during streaming: {e}")
