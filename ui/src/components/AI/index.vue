@@ -28,7 +28,7 @@ import { onMounted, provide, ref, watch } from 'vue';
 import { chatApi, getAiChatBaseInfoApi, getModelListApi, chatStreamApi } from './aichat_api'
 import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
-import HeaderArea from "@/components/AI/HeaderArea.vue";
+import HeaderArea from "./HeaderArea.vue";
 
 const props = defineProps({
     height: {
@@ -67,6 +67,7 @@ const sqlQueryResult = ref() // SQL查询结果
 let startChat = false
 let responseId:string = ''
 let firstChunkStr = ''
+let META_DATA_DONE = false
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
@@ -103,12 +104,19 @@ function clearChunkResult() {
     startChat = false
     responseId = ''
 }
+
+
 function onChunk(chunk, fullText) {
     console.log('Received chunk:', chunk);
     chunkCnt++;
-    if (chunkCnt === 1) {
-        firstChunkStr = chunk
-        const meta = JSON.parse(chunk)
+
+
+
+    if (fullText.includes(":META DATA DONE:")) {
+        
+        firstChunkStr = fullText.split(":META DATA DONE:")[0]
+        META_DATA_DONE = true
+        const meta = JSON.parse(firstChunkStr)
 
         currentChatType.value = meta.type
         sqlQueryResult.value = meta.sqlQueryResult
@@ -140,7 +148,8 @@ function onChunk(chunk, fullText) {
     console.log('Full text:', fullText, firstChunkStr);
     if(fullText.startsWith(firstChunkStr)) {
       console.log('Full text:', fullText, firstChunkStr);
-      fullText = fullText.slice(firstChunkStr.length);
+    //   fullText = fullText.slice(firstChunkStr.length);
+      fullText = fullText.split(":META DATA DONE:")[1]
     }
     // 例如，将 chunk 添加到消息列表中
     if (messages.value[messages.value.length - 1].role === 'assistant') {
@@ -308,5 +317,9 @@ async function sendMsg() {
 
     }
 
+}
+
+.AIChat {
+    z-index: 9999;
 }
 </style>

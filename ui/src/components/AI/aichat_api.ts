@@ -1,15 +1,17 @@
 import axios from "axios";
 
+import { getToken } from "@/utils/auth";
 const request = axios.create({
   baseURL: import.meta.env.VITE_AI_CHAT_BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    Authorization: getToken(),
+    Authorization: 'Bearer ' + getToken(),
   },
 });
-function getToken() {
-  return "abcdefghijklmnopqrstuvwxyz"; // Replace with actual token retrieval logic
-}
+console.log('header',   getToken())
+// function getToken() {
+//   return "abcdefghijklmnopqrstuvwxyz"; // Replace with actual token retrieval logic
+// }
 export async function chatApi({ messages, chatId, modelName, stream }: { messages: any[], chatId: number | null, modelName: string, stream: boolean }) {
   return request.post("/completions", { messages, chatId, modelName, stream });
 }
@@ -48,6 +50,7 @@ export async function getPipelinesApi({ queryId }) {
   return request.post("/getPipelineList", { queryId: queryId });
 }
 import { message } from 'ant-design-vue';
+import { Header } from "ant-design-vue/es/layout/layout";
 
 export async function fetchStream(url, options, onChunk, onComplete) {
   try {
