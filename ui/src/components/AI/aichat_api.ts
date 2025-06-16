@@ -1,12 +1,14 @@
 import axios from "axios";
 
+// import { getToken } from "@/utils/auth";
 const request = axios.create({
   baseURL: import.meta.env.VITE_AI_CHAT_BASE_URL,
   headers: {
     "Content-Type": "application/json",
-    Authorization: getToken(),
+    Authorization: 'Bearer ' + getToken(),
   },
 });
+console.log('header',   getToken())
 function getToken() {
   return "abcdefghijklmnopqrstuvwxyz"; // Replace with actual token retrieval logic
 }
@@ -24,12 +26,12 @@ export async function chatStreamApi({ messages, chatId, modelName, responseId, o
   }, onChunk || (() => { }), onComplete || (() => { }));
 }
 
-export async function getChatHistoryListApi({ userId }) {
+export async function getChatHistoryListApi({ userId }:any) {
   return request.post("/getAiChatHistoryList", { user_id: userId });
 }
 
 
-export async function delChatApi({ chatId }) {
+export async function delChatApi({ chatId }:any) {
   return request.post("/deleteChat", { chatId: chatId });
 }
 
@@ -37,19 +39,19 @@ export async function getModelListApi() {
   return request.post("/getModelList");
 }
 
-export async function getModelByIdApi({ modelId }) {
+export async function getModelByIdApi({ modelId }:any) {
   return request.post("/getModelById", { model_id: modelId });
 }
 
-export async function getAiChatBaseInfoApi({ chatId }) {
+export async function getAiChatBaseInfoApi({ chatId }:any) {
   return request.post("/getAiChatBaseInfo", { chatId: chatId });
 }
-export async function getPipelinesApi({ queryId }) {
+export async function getPipelinesApi({ queryId }:any) {
   return request.post("/getPipelineList", { queryId: queryId });
 }
 import { message } from 'ant-design-vue';
 
-export async function fetchStream(url, options, onChunk, onComplete) {
+export async function fetchStream(url:any, options:any, onChunk:any, onComplete:any) {
   try {
     const response = await fetch(url, options);
     if (!response.ok || !response.body) {
@@ -71,7 +73,7 @@ export async function fetchStream(url, options, onChunk, onComplete) {
     }
 
     if (onComplete) onComplete(fullText);
-  } catch ( e ) {
+  } catch ( e:any ) {
 
     console.log(e)
     message.error(e.message);

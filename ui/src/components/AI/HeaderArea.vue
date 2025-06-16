@@ -50,11 +50,11 @@
     <div class="right-content">
       <div class="icons">
         <div class="icon"><EllipsisOutlined /></div>
-        <a-tooltip>
+        <!-- <a-tooltip>
                 <template #title v-if="!stream" placement="bottom">开启流式回复</template>
                 <template #title v-else placement="bottom">关闭流式回复</template>
                 <div class="icon" @click="stream = !stream" ><ControlOutlined /></div>
-            </a-tooltip>
+        </a-tooltip> -->
 
         <a-popover placement="bottomRight" :arrow="false" trigger="click"
              overlayClassName="custom-poper-right" :overlayInnerStyle="{transform: 'translate(10px, 0)'}" >
@@ -82,8 +82,8 @@ import {
 } from '@ant-design/icons-vue';
 import {ref,reactive,onMounted, inject, watch} from 'vue'
 import { message } from 'ant-design-vue';
-import robotPic from '@/components/AI/robot.jpg'
-import Icon from "@/components/Atom/Image/Icon.vue";
+import robotPic from './robot.jpg'
+// import Icon from "@/components/Atom/Image/Icon.vue";
 import { getModelListApi } from './aichat_api';
 const currentChatId = inject('currentChatId'); // 获取当前聊天 ID
 const modelList = inject('modelList'); // 获取模型列表
@@ -139,9 +139,11 @@ function openDialog() {
   message.success("openDialog!!!")
 }
 
-
+// import { useUserStore } from '@/store/modules/user';
 // 退出登陆
 function logout() {
+
+  // console.log(useUserStore().roles)
   message.success('logout!')
 }
 
@@ -291,6 +293,7 @@ function newChat() {
     border-radius: 3px;
     .text {
       margin-left: 15px;
+      user-select: none;
     }
     &:hover {
       background-color: rgb(236,236,236);

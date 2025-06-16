@@ -1,12 +1,12 @@
 <template>
-    <a-layout-sider v-model:collapsed="collapsed" collapsible theme="light" style="padding-bottom: 0;">
-        <div class="header" style="margin-bottom: 20px;">
+    <a-layout-sider v-model:collapsed="collapsed" collapsible theme="light" style="padding: 0 0;">
+        <div class="sidebar-header" style="margin-bottom: 20px;">
             <a-tooltip>
                 <template #title v-if="!collapsed" placement="topRight">折叠侧边栏</template>
                 <template #title v-else placement="topRight">展开侧边栏</template>
                 <AlignLeftOutlined style="cursor: pointer;" @click="collapsed = !collapsed" />
             </a-tooltip>
-            <span style="position: absolute; left:50%;transform:translateX(-50%);" v-if="!collapsed">邕警智搜智能体</span>
+            <span style="position: absolute; left:50%;transform:translateX(-50%);white-space: nowrap;" v-if="!collapsed">邕警智搜智能体</span>
         </div>
         <!-- 搜索输入框 -->
         <div v-if="!collapsed" class="SearchBox">

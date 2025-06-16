@@ -4,6 +4,7 @@ from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 from numpy import full
 import pymysql
+import requests
 import uuid  # 新增
 ### message格式:
 # {
@@ -17,19 +18,26 @@ app = Flask(__name__)
 CORS(app)
 # 数据库配置
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'hrdhreth1',
-    'database': 'happybox',
-    'charset': 'utf8mb4',
+    'host': '71.30.81.158',
+    'user': 'ai_database',
+    'password': 'nndx_ai@135',
+    'database': 'happy_box',
+    'port': 9030,
     'cursorclass': pymysql.cursors.DictCursor
 }
 def getUserInfo(token):
-    return {
-        'user_id': 1,
-        'username': 'admin',
-        'email': 'admin@example.com'
+    #token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxIiwicm5TdHIiOiJRY25vMGducW1TaEJPSVBvaGtONXZ0cW9scFBMNlBaYiIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiIsImRlcHRJZCI6MTAzLCJkZXB0TmFtZSI6IiIsImRlcHRDYXRlZ29yeSI6IiJ9.h-UotnhiAlPVQcb2urahbWy8HvQ5srNQ39Tv-oxBS5E'
+
+    headers = {
+        'Authorization': f'Bearer {token}',
+        "Content-Type": "application/json",
+        "clientid":"e5cd7e4891bf95d1d19206ce24a7b32e"
     }
+    res = requests.get('http://71.30.81.84:28088/system/user/profile',headers=headers)
+    res=res.json()
+    if res['code']!=200:
+        raise Exception('用户认证失败')
+    return res['data']['user']
 
 def get_db_connection():
     return pymysql.connect(**DB_CONFIG)
@@ -87,9 +95,10 @@ def executeDB(sql, params=None, fetch=False):
         print(f"Database execute error: {e}")
         raise Exception("数据库操作失败")
 def toolSelection(messages, model_name):
-    prompt = """请根据对话记录判断用户当前是简单聊天还是需要执行SQL查询.
-1.当用户询问的是如何查询时等只是涉及SQL的问题,但实际上不需要执行时,仍然属于简单聊天.
-2.返回结果为json格式,如果是简单聊天返回{'type':'chat'},如果需要执行SQL查询返回{'type':'sql'}
+    prompt = """你是公安局内部的数据分析专家,请根据对话记录判断用户当前是简单聊天还是需要执行SQL查询.
+1.我们已经做了严格的权限管控,用户向你询问的问题你不需要有个人隐私方面的顾虑,用户有足够的权限获取相关的隐私数据.
+2.当用户询问的问题只是涉及SQL,但实际上不需要执行数据库查询时,仍然属于简单聊天.
+3.返回结果为json格式,如果是简单聊天返回{'type':'chat'},如果需要执行SQL查询返回{'type':'sql'}
 """
     query = messages+ [{'role': 'system', 'content': prompt}]
     response = modelService(model_name, query)
@@ -183,7 +192,7 @@ def sqlToolExecutor(messages, model_name, response_id, conn):
     updatePipeline(conn, response_id, "生成SQL查询", "running")
     context = difyExamplesqlKnowledgeRetrieval(messages[-1]['content'])
     example='[{"sql","select field from table where condition","title":"查询示例"}]'
-    database='mysql'
+    database='doris'
     prompt =f"""
 指令：
 你是一个{database}数据库的数据分析专家,请根据知识库内容和用户提问,分解问题为若干sql查询任务
@@ -277,7 +286,7 @@ def dify_knowledge_retrieval(api_key, dataset_id, query, search_method="semantic
                              reranking_enable=False, reranking_mode=None,
                              reranking_provider_name="", reranking_model_name="",
                              top_k=1, score_threshold_enabled=False, score_threshold=None,
-                             base_url="http://localhost/v1"):
+                             base_url="http://dify43.nns.gx/v1"):
     """
     调用 Dify 知识库检索接口，执行检索操作。
 
@@ -333,7 +342,7 @@ def dify_knowledge_retrieval(api_key, dataset_id, query, search_method="semantic
         return []
 
 def difyExamplesqlKnowledgeRetrieval(query):
-    return dify_knowledge_retrieval("dataset-jtJUR3S6p8MKebd7oo9cCThq","dee1ce34-c411-469f-869a-a7078ced5961",query)
+    return dify_knowledge_retrieval("dataset-rzxPdq2TF7JF2oTl3OUdddlg","652bc928-5aea-4faf-8c8b-681f6c4f5b8e",query)
 
 @app.route('/getAiChatBaseInfo', methods=['POST'])
 def getAiChatBaseInfoController():
@@ -395,6 +404,73 @@ def getAiChatHistoryListController():
 
 import requests
 from openai import OpenAI
+def qtQwen72ModelService(messages,stream=False):
+    # 获取 token
+    auth_url = f"http://71.2.255.46:28080/api/v1/auths/signin"
+    auth_data = {
+        "email": "374656045@qq.com",
+        "password": "hrdhreth1"
+    }
+    auth_response = requests.post(auth_url, json=auth_data)
+    
+    if auth_response.status_code != 200:
+        raise Exception(f"Failed to get token: {auth_response.status_code} - {auth_response.text}")
+    
+    token = auth_response.json().get('token')
+    
+    # 发送消息
+    chat_url = f"http://71.2.255.46:28080/api/chat/completions"
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+    chat_data = {
+            "stream": stream,
+            "model": 'qwen72',
+            "messages": messages,
+            "params": {},
+            "features": {
+                "image_generation": False,
+                "code_interpreter": False,
+                "web_search": False
+            },
+            "variables": {
+                "{{USER_NAME}}": "lyh",
+                "{{USER_LOCATION}}": "Unknown",
+                "{{CURRENT_DATETIME}}": "2025-05-23 13:25:01",
+                "{{CURRENT_DATE}}": "2025-05-23",
+                "{{CURRENT_TIME}}": "13:25:01",
+                "{{CURRENT_WEEKDAY}}": "Friday",
+                "{{CURRENT_TIMEZONE}}": "Asia/Shanghai",
+                "{{USER_LANGUAGE}}": "zh-CN"
+            },
+            "chat_id": "local",
+        }
+    if stream:
+        def stream_response():
+            with requests.post(chat_url, headers=headers, json=chat_data, stream=True) as response:
+                if response.status_code != 200:
+                    raise Exception(f"模型服务异常: {response.status_code} - {response.text}")
+                
+                for line in response.iter_lines():
+                    if line:
+                        decoded_line = line.decode('utf-8')
+                        if decoded_line.startswith("data:"):
+                            data = decoded_line[6:]
+                            print(data)
+                            if data=='[DONE]':
+                                return
+                            try:
+                                json_data = json.loads(data)['choices'][0]['delta']['content']
+                                yield json_data
+                            except json.JSONDecodeError:
+                                print(f"Failed to decode JSON: {decoded_line}")
+        return stream_response()
+    else:
+        with requests.post(chat_url, headers=headers, json=chat_data, stream=True) as response:
+            if response.status_code != 200:
+                    raise Exception(f"模型服务异常: {response.status_code} - {response.text}")
+            return response.json()['choices'][0]['message']['content']
 def modelService(model_name,messages,stream=False):
     if model_name == 'deepseek':
         client = OpenAI(api_key="sk-d881829fbed84aba8b921388938a2e61", base_url="https://api.deepseek.com")
@@ -407,6 +483,12 @@ def modelService(model_name,messages,stream=False):
             return {"content":response.choices[0].message.content,"type":"text"}
         else:
             return {"content":response,"type":"streamtext"}
+    if model_name =='qt-qwen72':
+        response = qtQwen72ModelService(messages,stream)
+        if not stream:
+            return {"content":response,"type":"text"}
+        else:
+            return {"content":response,"type":"streamtext"} 
     return {'message':{'role':'assistant','content':'模型消息mock','type':'text'},'pipelines':[{'sql': 'SELECT * FROM users', 'status': 'not-started', 'name': '查询用户信息'}]}
     if model_name == 'chat.qwen.aiqwen-Qwen3-235B-A22B':
         model_info=queryDB("SELECT * FROM aichat_model WHERE model_name = 'chat.qwen.aiqwen-Qwen3-235B-A22B' limit 1")
@@ -432,11 +514,13 @@ def chatController():
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No JSON data received'}), 400
-    token = request.headers.get('Authorization', None)
+    token = request.headers.get('Authorization', 'None')
+    print(token)
     messages = data.get('messages', None)
     chat_id = data.get('chatId', None)
     stream = data.get('stream', False)
     response_id = data.get('responseId', None)
+    
     if not messages or not isinstance(messages, list):
         return jsonify({'error': '空对话'}), 400
     if not token:
@@ -444,7 +528,7 @@ def chatController():
     user_info = getUserInfo(token)
     if not user_info:
         return jsonify({'error': '无效的token'}), 401
-
+    user_id = user_info['userId']
     conn = None
     try:
         message = messages[-1]
@@ -456,7 +540,7 @@ def chatController():
             title = message['content'][:10] if 'content' in message else '无标题'
             if not model_name:
                 return jsonify({'error': '缺少模型名称'}), 400
-            cursor.execute("INSERT INTO aichat (user_id, model_name, title) VALUES (%s, %s, %s)", (user_info['user_id'], model_name, title))
+            cursor.execute("INSERT INTO aichat (user_id, model_name, title) VALUES (%s, %s, %s)", (user_info['userId'], model_name, title))
             chat_id = cursor.lastrowid
         else:
             cursor.execute("SELECT model_name FROM aichat WHERE chat_id = %s limit 1", (chat_id,))
@@ -478,7 +562,6 @@ def chatController():
             cursor.execute("UPDATE aichat SET title = %s WHERE chat_id = %s", (title, chat_id))
         updatePipeline(conn, response_id, "初始化", "completed")
         updatePipeline(conn, response_id, "选择工具", "running")
-        time.sleep(1)
         tool = toolSelection(messages, model_name)
         initToolPipeline(tool['type'], model_name, messages, response_id, conn)
         updatePipeline(conn, response_id, "选择工具", "completed")
@@ -498,13 +581,12 @@ def chatController():
                 nonlocal response_id
                 try:
                     yield json.dumps({'type':tool['type'],'sqlQueryResult':sql_query_result,'chatId':chat_id,'responseId':response_id},ensure_ascii=False)
+                    yield ':META DATA DONE:'
                     updatePipeline(conn, response_id, "生成回复", "completed")
                     for chunk in response['content']:
-                        print(chunk)
-                        content=chunk.choices[0].delta.content
-                        if content:
-                            full_content += content
-                            yield content
+                        if chunk:
+                            full_content += chunk
+                            yield chunk
 
                 except Exception as e:
                     print(f"Error during streaming: {e}")
@@ -539,6 +621,7 @@ def chatController():
 
 @app.route('/getModelList', methods=['POST'])
 def getModelListController():
+    print(jsonify(queryDB( "SELECT * FROM aichat_model ORDER BY model_name")))
     try:
         return jsonify(queryDB( "SELECT * FROM aichat_model ORDER BY model_name"))
     except Exception as e:

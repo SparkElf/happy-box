@@ -42,7 +42,6 @@ import RobotImg from './robot.jpg';
 import { computed, onBeforeUnmount, onMounted, ref, watch, withDefaults } from 'vue';
 import { marked } from 'marked'; // 引入 marked 库
 import type { Step } from './type';
-import { CaretRightOutlined } from '@ant-design/icons-vue';
 import { getPipelinesApi } from './aichat_api';
 import CheckmarkAnimation from './CheckmarkAnimation.vue'
 
