@@ -15,15 +15,27 @@ function getToken() {
 export async function chatApi({ messages, chatId, modelName, stream }: { messages: any[], chatId: number | null, modelName: string, stream: boolean }) {
   return request.post("/completions", { messages, chatId, modelName, stream });
 }
-export async function chatStreamApi({ messages, chatId, modelName, responseId, onChunk, onComplete }: { messages: any[], chatId: number | null, modelName: string, responseId: string, onChunk: (chunk: string, fullText: string) => void, onComplete?: (fullText: string) => void }) {
-  await fetchStream(import.meta.env.VITE_AI_CHAT_BASE_URL + "/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: getToken(),
-    },
-    body: JSON.stringify({ messages, chatId, modelName, responseId, stream: true }),
-  }, onChunk || (() => { }), onComplete || (() => { }));
+export async function chatStreamApi({ messages, chatId, modelName, responseId,firstChat, onChunk, onComplete,abortController }: { messages: any[], chatId: number | null, modelName: string, responseId: string, onChunk: (chunk: string, fullText: string) => void, onComplete?: (fullText: string) => void }) {
+  // 创建新的 AbortController
+  const controller = new AbortController();
+  abortController.value = controller; // 保存引用以便后续调用 stopChat
+  try {
+    await fetchStream(import.meta.env.VITE_AI_CHAT_BASE_URL + "/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: getToken(),
+      },
+      body: JSON.stringify({ messages, chatId, modelName, responseId, stream: true, firstChat }),
+      signal: controller.signal, // 绑定 signal 到请求
+    }, onChunk || (() => { }), onComplete || (() => { }));
+  } catch (e: any) {
+    if (e.name === 'AbortError') {
+      message.warn('用户终止响应');
+    } else {
+      message.error('未知错误');
+    }
+  }
 }
 
 export async function getChatHistoryListApi({ userId }:any) {

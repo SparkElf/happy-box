@@ -23,22 +23,54 @@ import { chatApi, getAiChatBaseInfoApi } from './aichat_api'
 const messages = inject('messages') as Ref<any[]>; // 使用 inject 获取 messages
 const currentChatId = inject('currentChatId') as Ref<Number>; // 获取当前聊天 ID
 const modelName = ref("qwen72")
+
 watch(currentChatId, (newChatId) => {
     if (newChatId) {
         getChatBaseInfo(newChatId); // 获取聊天基本信息
     }
 }, { immediate: true }); // 监听 currentChatId 的变化
-async function getChatBaseInfo(chatId) {
-    // 这里可以添加获取聊天基本信息的逻辑
-    const res = await getAiChatBaseInfoApi({ chatId });
-    if (res.status !== 200) {
-        console.error('获取聊天基本信息失败:', res);
-        return;
-    }
-    console.log('获取聊天基本信息成功:', res.data);
-    modelName.value = res.data.modelName; // 更新模型名称
-    messages.value = res.data.messages; // 更新消息列表
-    console.log(`获取聊天 ${chatId} 的基本信息`);
+async function getChatBaseInfo(chatId, maxRetries = 3) {
+    return new Promise((resolve, reject) => {
+        let retryCount = 0;
+
+        const fetchData = async () => {
+            try {
+                const res = await getAiChatBaseInfoApi({ chatId });
+
+                if (res.status !== 200) {
+                    throw new Error('获取聊天基本信息失败');
+                }
+
+                console.log('获取聊天基本信息成功:', res.data);
+                modelName.value = res.data.modelName;
+                messages.value = res.data.messages;
+
+                if (messages.value && messages.value.length >= 2) {
+                    console.log(`消息长度满足要求: ${messages.value.length}`);
+                    clearInterval(intervalId);
+                    resolve();
+                } else {
+                    console.log(`消息长度不足: ${messages.value.length}`);
+                    retryCount++;
+                    if (retryCount >= maxRetries) {
+                        clearInterval(intervalId);
+                        reject(new Error('超过最大重试次数，消息长度仍未满足要求'));
+                    }
+                }
+            } catch (error) {
+                console.error('请求过程中发生错误:', error);
+                retryCount++;
+                if (retryCount >= maxRetries) {
+                    clearInterval(intervalId);
+                    reject(error);
+                }
+            }
+        };
+
+        const intervalId = setInterval(fetchData, 1500);
+
+        // 初始调用一次即可，后续由 setInterval 自动处理
+    });
 }
 import { nextTick } from 'vue';
 const chatArea$ = ref<HTMLDivElement | null>(null);

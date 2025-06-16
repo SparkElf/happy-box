@@ -67,6 +67,7 @@ declare module 'vue' {
     Select: typeof import('./src/components/Atom/Select/Select.vue')['default']
     SendIcon: typeof import('./src/components/AI/SendIcon.vue')['default']
     SideBar: typeof import('./src/components/AI/SideBar.vue')['default']
+    StopIcon: typeof import('./src/components/AI/StopIcon.vue')['default']
     Tag: typeof import('./src/components/Atom/Button/Tag.vue')['default']
     TagGroup: typeof import('./src/components/Atom/List/TagGroup.vue')['default']
     VideoPlayer: typeof import('./src/components/Video/VideoPlayer.vue')['default']

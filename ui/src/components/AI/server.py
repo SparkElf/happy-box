@@ -16,6 +16,232 @@ import uuid  # 新增
 
 app = Flask(__name__)
 CORS(app)
+
+from flask import Flask, Response, request, jsonify
+from flask_cors import CORS
+import pymysql
+import requests
+import uuid
+import argparse
+import datetime
+import re
+import json
+from openai import OpenAI
+
+app = Flask(__name__)
+CORS(app)
+
+# =============================
+# 配置定义：生产 vs 开发环境
+# =============================
+CONFIGS = {
+    'production': {
+        'db': {
+            'host': '71.30.81.158',
+            'user': 'ai_database',
+            'password': 'nndx_ai@135',
+            'database': 'happy_box',
+            'port': 9030,
+            'cursorclass': pymysql.cursors.DictCursor
+        },
+        'dify': {
+            'api_key': 'dataset-rzxPdq2TF7JF2oTl3OUdddlg',
+            'dataset_id': '652bc928-5aea-4faf-8c8b-681f6c4f5b8e',
+            'base_url': 'http://dify43.nns.gx/v1'
+        },
+        'model_service': {
+            'deepseek': {
+                'api_key': 'sk-d881829fbed84aba8b921388938a2e61',
+                'base_url': 'https://api.deepseek.com'
+            },
+            'qt_qwen72': {
+                'auth_url': 'http://71.2.255.46:28080/api/v1/auths/signin',
+                'chat_url': 'http://71.2.255.46:28080/api/chat/completions'
+            }
+        }
+    },
+    'development': {
+        'db': {
+            'host': 'localhost',
+            'user': 'root',
+            'password': 'hrdhreth1',
+            'database': 'happybox',
+            'port': 3306,
+            'cursorclass': pymysql.cursors.DictCursor
+        },
+        'dify': {
+            'api_key': 'dataset-jtJUR3S6p8MKebd7oo9cCThq',
+            'dataset_id': 'dee1ce34-c411-469f-869a-a7078ced5961',
+            'base_url': 'http://localhost/v1'
+        },
+        'model_service': {
+            'deepseek': {
+                'api_key': 'sk-d881829fbed84aba8b921388938a2e61',
+                'base_url': 'https://api.deepseek.com'
+            },
+            'qt_qwen72': {
+                'auth_url': 'http://localhost:28080/api/v1/auths/signin',
+                'chat_url': 'http://localhost:28080/api/chat/completions'
+            }
+        }
+    }
+}
+
+# =============================
+# 命令行参数解析
+# =============================
+def parse_args():
+    parser = argparse.ArgumentParser(description='启动 Flask 应用并指定运行环境')
+    parser.add_argument('--env', type=str, default='development',
+                        choices=['production', 'development'],
+                        help='运行环境：production（默认）或 development')
+    return parser.parse_args()
+
+args = parse_args()
+CURRENT_ENV = args.env
+print(CURRENT_ENV)
+# 提取当前环境下的配置
+DB_CONFIG = CONFIGS[CURRENT_ENV]['db']
+DIFY_API_KEY = CONFIGS[CURRENT_ENV]['dify']['api_key']
+DIFY_DATASET_ID = CONFIGS[CURRENT_ENV]['dify']['dataset_id']
+DIFY_BASE_URL = CONFIGS[CURRENT_ENV]['dify']['base_url']
+print(CONFIGS[CURRENT_ENV])
+DEEPSEEK_API_KEY = CONFIGS[CURRENT_ENV]['model_service']['deepseek']['api_key']
+DEEPSEEK_BASE_URL = CONFIGS[CURRENT_ENV]['model_service']['deepseek']['base_url']
+
+QT_QWEN72_AUTH_URL = CONFIGS[CURRENT_ENV]['model_service']['qt_qwen72']['auth_url']
+QT_QWEN72_CHAT_URL = CONFIGS[CURRENT_ENV]['model_service']['qt_qwen72']['chat_url']
+
+
+# =============================
+# 数据库连接
+# =============================
+def get_db_connection():
+    return pymysql.connect(**DB_CONFIG)
+
+
+# =============================
+# 工具函数
+# =============================
+def underscore_to_camel(word):
+    parts = word.split('_')
+    return parts[0] + ''.join(x.title() for x in parts[1:])
+
+def dict_keys_to_camel(d):
+    if isinstance(d, dict):
+        return {underscore_to_camel(k): dict_keys_to_camel(v) for k, v in d.items()}
+    elif isinstance(d, list):
+        return [dict_keys_to_camel(i) for i in d]
+    else:
+        return d
+
+
+def queryDB(sql, params=None):
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(sql, params)
+            result = cursor.fetchall()
+        conn.close()
+
+        def format_datetime(obj):
+            if isinstance(obj, dict):
+                return {k: format_datetime(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [format_datetime(i) for i in obj]
+            elif isinstance(obj, datetime.datetime):
+                return obj.strftime('%Y-%m-%d %H:%M:%S')
+            elif isinstance(obj, datetime.date):
+                return obj.strftime('%Y-%m-%d')
+            else:
+                return obj
+
+        result = format_datetime(result)
+        return dict_keys_to_camel(result)
+    except Exception as e:
+        print(f"Database query error: {e}")
+        return None
+
+
+# 其余函数保持不变，以下只展示核心变动部分
+
+# =============================
+# dify 知识库调用
+# =============================
+
+def difyExamplesqlKnowledgeRetrieval(query):
+    return dify_knowledge_retrieval(DIFY_API_KEY, DIFY_DATASET_ID, query,base_url=DIFY_BASE_URL)
+
+
+# =============================
+# 模型服务
+# =============================
+def deepseekModelService(messages, stream=False):
+    client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_BASE_URL)
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=messages,
+        stream=stream
+    )
+    if not stream:
+        return response.choices[0].message.content
+    else:
+        def stream_response():
+            for chunk in response:
+                yield chunk.choices[0].delta.content
+        return stream_response()
+
+
+def qtQwen72ModelService(messages, stream=False):
+    # 获取 token
+    auth_response = requests.post(QT_QWEN72_AUTH_URL, json={
+        "email": "374656045@qq.com",
+        "password": "hrdhreth1"
+    })
+    if auth_response.status_code != 200:
+        raise Exception(f"Failed to get token: {auth_response.status_code} - {auth_response.text}")
+    token = auth_response.json().get('token')
+
+    # 发送消息
+    chat_data = {
+        "stream": stream,
+        "model": 'qwen72',
+        "messages": messages,
+        "params": {},
+        "features": {"image_generation": False, "code_interpreter": False, "web_search": False},
+        "variables": {
+            "{{USER_NAME}}": "lyh",
+            "{{USER_LOCATION}}": "Unknown",
+            "{{CURRENT_DATETIME}}": "2025-05-23 13:25:01",
+            "{{CURRENT_DATE}}": "2025-05-23",
+            "{{CURRENT_TIME}}": "13:25:01",
+            "{{CURRENT_WEEKDAY}}": "Friday",
+            "{{CURRENT_TIMEZONE}}": "Asia/Shanghai",
+            "{{USER_LANGUAGE}}": "zh-CN"
+        },
+        "chat_id": "local"
+    }
+
+    if stream:
+        def stream_response():
+            with requests.post(QT_QWEN72_CHAT_URL, headers={'Authorization': f'Bearer {token}'}, json=chat_data, stream=True) as res:
+                for line in res.iter_lines():
+                    if line:
+                        decoded_line = line.decode('utf-8')
+                        if decoded_line.startswith("data:"):
+                            data = decoded_line[6:]
+                            try:
+                                yield json.loads(data)['choices'][0]['delta']['content']
+                            except Exception:
+                                pass
+        return stream_response()
+    else:
+        res = requests.post(QT_QWEN72_CHAT_URL, headers={'Authorization': f'Bearer {token}'}, json=chat_data)
+        return res.json()['choices'][0]['message']['content']
+
+
+
+
 # 数据库配置
 # DB_CONFIG = {
 #     'host': '71.30.81.158',
@@ -28,8 +254,8 @@ CORS(app)
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'password',
-    'database': 'happy-box',
+    'password': 'hrdhreth1',
+    'database': 'happybox',
     'port': 3306,
     'cursorclass': pymysql.cursors.DictCursor
 }
@@ -294,7 +520,7 @@ def dify_knowledge_retrieval(api_key, dataset_id, query, search_method="semantic
                              reranking_enable=False, reranking_mode=None,
                              reranking_provider_name="", reranking_model_name="",
                              top_k=1, score_threshold_enabled=False, score_threshold=None,
-                             base_url="http://dify43.nns.gx/v1"):
+                             base_url=DIFY_BASE_URL):
     """
     调用 Dify 知识库检索接口，执行检索操作。
 
@@ -349,8 +575,6 @@ def dify_knowledge_retrieval(api_key, dataset_id, query, search_method="semantic
         print(f"请求失败: {e}")
         return []
 
-def difyExamplesqlKnowledgeRetrieval(query):
-    return dify_knowledge_retrieval("dataset-rzxPdq2TF7JF2oTl3OUdddlg","652bc928-5aea-4faf-8c8b-681f6c4f5b8e",query)
 
 @app.route('/getAiChatBaseInfo', methods=['POST'])
 def getAiChatBaseInfoController():
@@ -358,7 +582,7 @@ def getAiChatBaseInfoController():
     if not data:
         return jsonify({'error': '未收到请求参数'}), 400
     try:
-        chat_id = int(data['chatId'])
+        chat_id = data['chatId']
         if not chat_id:
             return jsonify({'error': '缺少chatId参数'}), 400
         base_info = queryDB("SELECT * FROM aichat WHERE chat_id = %s limit 1 ", (chat_id,))[0]
@@ -412,92 +636,17 @@ def getAiChatHistoryListController():
 
 import requests
 from openai import OpenAI
-def qtQwen72ModelService(messages,stream=False):
-    # 获取 token
-    auth_url = f"http://71.2.255.46:28080/api/v1/auths/signin"
-    auth_data = {
-        "email": "374656045@qq.com",
-        "password": "hrdhreth1"
-    }
-    auth_response = requests.post(auth_url, json=auth_data)
 
-    if auth_response.status_code != 200:
-        raise Exception(f"Failed to get token: {auth_response.status_code} - {auth_response.text}")
 
-    token = auth_response.json().get('token')
-
-    # 发送消息
-    chat_url = f"http://71.2.255.46:28080/api/chat/completions"
-    headers = {
-        'Authorization': f'Bearer {token}',
-        'Content-Type': 'application/json'
-    }
-    chat_data = {
-            "stream": stream,
-            "model": 'qwen72',
-            "messages": messages,
-            "params": {},
-            "features": {
-                "image_generation": False,
-                "code_interpreter": False,
-                "web_search": False
-            },
-            "variables": {
-                "{{USER_NAME}}": "lyh",
-                "{{USER_LOCATION}}": "Unknown",
-                "{{CURRENT_DATETIME}}": "2025-05-23 13:25:01",
-                "{{CURRENT_DATE}}": "2025-05-23",
-                "{{CURRENT_TIME}}": "13:25:01",
-                "{{CURRENT_WEEKDAY}}": "Friday",
-                "{{CURRENT_TIMEZONE}}": "Asia/Shanghai",
-                "{{USER_LANGUAGE}}": "zh-CN"
-            },
-            "chat_id": "local",
-        }
-    if stream:
-        def stream_response():
-            with requests.post(chat_url, headers=headers, json=chat_data, stream=True) as response:
-                if response.status_code != 200:
-                    raise Exception(f"模型服务异常: {response.status_code} - {response.text}")
-
-                for line in response.iter_lines():
-                    if line:
-                        decoded_line = line.decode('utf-8')
-                        if decoded_line.startswith("data:"):
-                            data = decoded_line[6:]
-                            print(data)
-                            if data=='[DONE]':
-                                return
-                            try:
-                                json_data = json.loads(data)['choices'][0]['delta']['content']
-                                yield json_data
-                            except json.JSONDecodeError:
-                                print(f"Failed to decode JSON: {decoded_line}")
-        return stream_response()
-    else:
-        with requests.post(chat_url, headers=headers, json=chat_data, stream=True) as response:
-            if response.status_code != 200:
-                    raise Exception(f"模型服务异常: {response.status_code} - {response.text}")
-            return response.json()['choices'][0]['message']['content']
 def modelService(model_name,messages,stream=False):
     if model_name == 'deepseek':
-        client = OpenAI(api_key="sk-d881829fbed84aba8b921388938a2e61", base_url="https://api.deepseek.com")
-        response = client.chat.completions.create(
-                model="deepseek-chat",
-                messages=messages,
-                stream=stream
-            )
-        if not stream:
-            print(response.choices[0].message.content,"123123123123123123123123123")
-            return {"content":response.choices[0].message.content,"type":"text"}
-        else:
-            return {"content":response,"type":"streamtext"}
+        response = deepseekModelService(messages,stream)
     if model_name =='qt-qwen72':
         response = qtQwen72ModelService(messages,stream)
-        if not stream:
-            return {"content":response,"type":"text"}
-        else:
-            return {"content":response,"type":"streamtext"}
+    if not stream:
+        return {"content":response,"type":"text"}
+    else:
+        return {"content":response,"type":"streamtext"}
     return {'message':{'role':'assistant','content':'模型消息mock','type':'text'},'pipelines':[{'sql': 'SELECT * FROM users', 'status': 'not-started', 'name': '查询用户信息'}]}
     if model_name == 'chat.qwen.aiqwen-Qwen3-235B-A22B':
         model_info=queryDB("SELECT * FROM aichat_model WHERE model_name = 'chat.qwen.aiqwen-Qwen3-235B-A22B' limit 1")
@@ -513,7 +662,7 @@ def getChatTitle(messages,model_name=None):
     if not model_name:
         return messages[0]['content']
     if model_name == 'deepseek':
-        task_massages = messages+ [{'role': 'system', 'content': '请根据用户输入的内容概括总结生成标题,不超过10个字'}]
+        task_massages = messages+ [{'role': 'system', 'content': '请根据用户输入的内容概括总结生成标题,不超过10个字,请直接输出标题,不包括解释说明和json等其他格式的信息'}]
         response = modelService(model_name, task_massages)
         return response['content']
 
@@ -527,9 +676,11 @@ def chatController():
     print(token)
     messages = data.get('messages', None)
     chat_id = data.get('chatId', None)
+    if not chat_id:
+        return jsonify({'error': '缺少chatId参数'}), 400
     stream = data.get('stream', False)
     response_id = data.get('responseId', None)
-
+    first_chat = data.get('firstChat', False)
     if not messages or not isinstance(messages, list):
         return jsonify({'error': '空对话'}), 400
     if not token:
@@ -547,13 +698,12 @@ def chatController():
         conn = get_db_connection()
         cursor = conn.cursor()
         title = None
-        if not chat_id:
+        if first_chat:
             model_name = data['modelName']
             title = message['content'][:10] if 'content' in message else '无标题'
             if not model_name:
                 return jsonify({'error': '缺少模型名称'}), 400
-            cursor.execute("INSERT INTO aichat (user_id, model_name, title) VALUES (%s, %s, %s)", (user_info['userId'], model_name, title))
-            chat_id = cursor.lastrowid
+            cursor.execute("INSERT INTO aichat (user_id, model_name, title,chat_id) VALUES (%s, %s, %s, %s)", (user_info['userId'], model_name, title,chat_id))
         else:
             cursor.execute("SELECT model_name FROM aichat WHERE chat_id = %s limit 1", (chat_id,))
             row = cursor.fetchone()
@@ -569,7 +719,7 @@ def chatController():
         cursor.execute("INSERT INTO aichat_response (id,chat_id, query_id, content, type , model_name) VALUES (%s,%s, %s, %s, %s, %s)",
                                     (response_id,chat_id, query_id, "", "text", model_name))
         initPipeline(model_name, messages, response_id, conn)
-        if title:
+        if first_chat:
             title = getChatTitle(messages, model_name)
             cursor.execute("UPDATE aichat SET title = %s WHERE chat_id = %s", (title, chat_id))
         updatePipeline(conn, response_id, "初始化", "completed")
@@ -597,9 +747,9 @@ def chatController():
                     updatePipeline(conn, response_id, "生成回复", "completed")
                     for chunk in response['content']:
                         if chunk:
-                            print(chunk.choices[0].delta.content)
-                            full_content += chunk.choices[0].delta.content
-                            yield chunk.choices[0].delta.content
+                            print(chunk)
+                            full_content += chunk
+                            yield chunk
 
                 except Exception as e:
                     print(f"Error during streaming: {e}")

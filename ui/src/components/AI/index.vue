@@ -14,7 +14,8 @@
                       @keydown.enter.native="sendMsg">
                     </a-textarea>
                     <div class="ButtonGroup">
-                        <SendIcon @click="sendMsg" />
+                        <SendIcon @click="sendMsg" v-if="!loading"/>
+                        <StopIcon @click="stopChat" v-else />
                     </div>
                 </div>
             </a-layout>
@@ -29,7 +30,7 @@ import { chatApi, getAiChatBaseInfoApi, getModelListApi, chatStreamApi } from '.
 import SendIcon from './SendIcon.vue';
 import { message } from 'ant-design-vue';
 import HeaderArea from "./HeaderArea.vue";
-
+import StopIcon from './StopIcon.vue';
 const props = defineProps({
     height: {
         type: [String, Number],
@@ -68,12 +69,22 @@ let startChat = false
 let responseId:string = ''
 let firstChunkStr = ''
 let META_DATA_DONE = false
+let receiving=false
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
+}
+const abortController = ref<AbortController | null>(null);
+function stopChat() {
+    if(!receiving)return
+  if (abortController.value) {
+    abortController.value.abort(); // 中止请求
+    abortController.value = null; // 清除引用
+  }
+  loading.value = false; // 停止加载状态
 }
 function waitChat() {
   responseId = generateUUID();
@@ -108,7 +119,7 @@ function clearChunkResult() {
 let firstChunkDone = false
 function onChunk(chunk, fullText) {
     chunkCnt++;
-
+    receiving=true
     if (fullText.includes(":META DATA DONE:")) {
         firstChunkDone = true
         firstChunkStr = fullText.split(":META DATA DONE:")[0]
@@ -126,11 +137,11 @@ function onChunk(chunk, fullText) {
         })
         console.log(messages.value,'messages.value')
         responseId = meta.responseId
-        if (currentChatId.value === null) {
-            // 如果当前聊天 ID 为空，则设置为返回的 chatId
-            currentChatId.value = parseInt(meta.chatId);
-            needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
-        }
+        // if (currentChatId.value === null) {
+        //     // 如果当前聊天 ID 为空，则设置为返回的 chatId
+        //     currentChatId.value = parseInt(meta.chatId);
+        //     needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
+        // }
         console.log('当前聊天类型:', currentChatType.value);
     } else return
 
@@ -159,9 +170,11 @@ function onComplete() {
       item.last = index === messages.value.length -1
     })
     firstChunkDone = false
+    receiving = false
 }
 watch(messages.value, (newVal, oldVal) => {
     console.log('messages changed:', newVal);
+
 })
 async function sendMsg() {
 
@@ -183,14 +196,6 @@ async function sendMsg() {
             //messages.value = [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }, { role: 'assistant', content: '', type: 'text' }]; // 更新消息列表
             clearChunkResult();
             waitChat()
-            console.log(responseId, '!!!!!!!!!!',{
-              messages: [...messages.value, { role: 'user', content: inputValue.value, type: 'text' }],
-              chatId: currentChatId.value,
-              modelName: modelName.value,
-              responseId: responseId,
-              onChunk,
-              onComplete
-            })
             try {
                 const sendMessages = []
                 for (let i = 0; i < messages.value.length - 1; i++) {
@@ -203,14 +208,23 @@ async function sendMsg() {
                     }
                     sendMessages.push(messages.value[i])
                 }
+                const newId = currentChatId.value!=null ? null : generateUUID()
+                console.log(newId,'newId',currentChatId)
+                if (newId) currentChatId.value = newId
+                setTimeout(() => {
+                    needRefreshHistoryList.value = true; // 设置标志，表示需要刷新聊天记录列表
+                },1000)
                 await chatStreamApi({
                     messages: sendMessages,
-                    chatId: currentChatId.value,
+                    chatId: currentChatId.value?currentChatId.value:newId,
                     modelName: modelName.value,
                     responseId: responseId,
+                    firstChat:newId!=null,
                     onChunk,
-                    onComplete
+                    onComplete,
+                    abortController
                 });
+                needRefreshHistoryList.value = true
             } catch (e:any) {
                 message.info(e)
             }
@@ -302,7 +316,16 @@ async function sendMsg() {
         right: 25px;
         top: 50%;
         transform: translateY(-50%);
-
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        svg{
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: #AEAFBC;
+            fill: #AEAFBC;
+        }
     }
 
 }
